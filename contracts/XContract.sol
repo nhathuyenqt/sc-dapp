@@ -8,7 +8,7 @@ contract XContract{
     string public name = 'Xcontract';
     string symbol;
     uint public totalSupply = 1000000;
-    uint public initialSupply = 1000000;
+    uint public initialSupply = 10000;
 
     mapping(address => uint) balances;
     address public association;
