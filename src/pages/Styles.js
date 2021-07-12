@@ -6,7 +6,7 @@ const useStyles = makeStyles((theme) => ({
         display :'flex',
         flexDirection: 'column',
         width: '32rem',
-        marginLeft: '15rem', 
+        // marginLeft: '15rem', 
         // backgroundColor: '#3f4c6b'
         backgroundColor: theme.palette.background.paper
     },
@@ -16,6 +16,9 @@ const useStyles = makeStyles((theme) => ({
 
     cardContent: {
         flexGrow:1
+    },
+    cardGrid: {
+        padding: '20px 0'
     },
     icon: {
         marginRight: '20px'
@@ -48,8 +51,14 @@ const useStyles = makeStyles((theme) => ({
         // marginbottom: 0.5rem,
         fontSize: '20px',
         color: '#FFFFFF',
+    },
+    field:{
+        marginTop: 20,
+        marginBottom: 10,
+        display: 'block'
     }
 
 }));
 
 export default useStyles;
+

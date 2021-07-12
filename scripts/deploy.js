@@ -17,12 +17,12 @@ async function main(){
 	const bytecode = XContract.bytecode;
 	// console.log(`Bytecode: ${bytecode}`);
 
-	const data = {
-		address: xc.address,
-		abi: JSON.parse(xc.interface.format('json'))
-		,bytecode : XContract.bytecode
-	};
-	fs.writeFileSync('frontend/src/XContract.json', JSON.stringify(data));
+	// const data = {
+	// 	address: xc.address,
+	// 	abi: JSON.parse(xc.interface.format('json'))
+	// 	,bytecode : XContract.bytecode
+	// };
+	// fs.writeFileSync('frontend/src/XContract.json', JSON.stringify(data));
 
 }
 
