@@ -3,15 +3,15 @@ import React from 'react';
 import {Typography, Button, AppBar, Spinner, Card,  CircularProgress, Container, CardActions, Grid, CardContent, CardMedia, TextField} from '@material-ui/core'
 
 import  useStyles  from './Styles.js';
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 import {ethers} from 'ethers'
 import { Dimmer, Loader, Image, Segment, } from 'semantic-ui-react'
 
 import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
 
 
-// const contractAddress = '0x3a709513c233b2EFeCF984847Daa676291f8Bc1E'
-const contractAddress = '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'
+const contractAddress = '0xc67F486b1d7f4Eaa44639B5e063E66B84CF4F512' // rinkeby
+// const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
 var loading = false;
 
 function Home() {
@@ -19,21 +19,52 @@ function Home() {
 
   const [greeting, setGreetingValue] = useState('')
   const [userAccount, setUserAccount] = useState('')
-  const [amount, setAmount] = useState(0)  
+  const [loading, setLoading] = useState(false);
+  const [balance, setBalance] = useState()
+  const [amount, setAmount] = useState()
+  const [recipient, setTo] = useState("0xC5e65BF63b33B865e78A02b13f0db60713c3Ff96")
+  const [currentTime, setCurrentTime] = useState(0);
 
-  async function updateStateEventListener(callback) {
-    await requestAccount()
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(contractAddress, XContract.abi, signer)
-    const updateStateEvent = contract.UpdateState()
-    return updateStateEvent.watch(callback)
+ 
+  useEffect(() => {
+    fetch('/time').then(res => res.json()).then(data => {
+      setCurrentTime(data.time);
+    });
+  }, []);
+
+  // useEffect(() => {
+  //   requestAccount()
+  // });
+  if (window.ethereum){
+    window.ethereum.on('accountsChanged', function(accounts){
+      setUserAccount(accounts[0])
+    })
   }
+  // async function updateStateEventListener(callback) {
+  //   await requestAccount()
+  //   const provider = new ethers.providers.Web3Provider(window.ethereum);
+  //   const signer = provider.getSigner();
+  //   const contract = new ethers.Contract(contractAddress, XContract.abi, signer)
+  //   const updateStateEvent = contract.UpdateState()
+  //   return updateStateEvent.watch(callback)
+  // }
 
   async function requestAccount(){
-    await window.ethereum.request({method : 'eth_requestAccounts'})
-    
+    const accounts = await window.ethereum.request({method : 'eth_requestAccounts'})
+    console.log(accounts[0]);
+    setUserAccount(accounts[0])
+
   }
+  // function getAccounts(callback) {
+  //   web3.eth.getAccounts((error,result) => {
+  //       if (error) {
+  //           console.log(error);
+  //       } else {
+  //           callback(result);
+  //       }
+  //   });
+  // }
+  
 
   async function setGreeting(){
     if (!greeting) return
@@ -45,31 +76,10 @@ function Home() {
       const transaction = await contract.setGreeting(greeting)
       await transaction.wait()
 
-      const eventToAction = name => (err, result) => {
-        console.log("hello")
-      };
-      let event = contract.TestMsg()
-      event.watch(eventToAction("paid"))
-      // console.log(transaction.events)
-      // contract.events.TestMsg({}).on(
-      //   'data2', event =>console.log(event))
-      // contract.allEvents({
-      //   fromBlock: 'latest',
-      //         }, function (error, event) {
-      //             if (error)
-      //                 alert("error while subscribing to event")
-      //             console.log(event)
-      //             }
-      //         );
-      // contract.events.TestMsg({}, (error, msg)=> {
-      //   if(!error) {
-      //     console.log(msg);
-      //     loading = false;
-      //   } else {
-      //     console.log(error);
-      //   }
-      // });
-      //
+      contract.on("TestMsg", (msg) => {
+        console.log('Msg : ', msg);
+      });
+
       fetchGreeting()
     }
   }
@@ -88,48 +98,73 @@ function Home() {
   }
 
   async function getBalance(){
+    setLoading(true)
     if (typeof window.ethereum !== 'undefined'){
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const contract = new ethers.Contract(contractAddress, XContract.abi, provider)
       const signer =  provider.getSigner()
       const [account] = await window.ethereum.request({method: 'eth_requestAccounts'})
       const acc = signer.getAddress()
-      const balance = await contract.balanceOf(account)
+      const b = await contract.balanceOf(account)
+      // setAmount(balance.toString())
       console.log('provider: ', provider)
       console.log('signer: ', signer)
       console.log('address: ', acc)
-      console.log('balance: ', balance.toString())
-    
+      console.log('balance: ', b.toString())
+      setBalance(b.toString())
+      setLoading(false)
     }
   }
 
   async function register(){
+    setLoading(true)
     if (typeof window.ethereum !== 'undefined'){
-      await requestAccount()
+      // await requestAccount()
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress, XContract.abi, signer)
       const transaction = await contract.register()
-      await transaction.wait()
-      // fetchBalance()
+      // var accounts = await provider.getAccounts();
+      // console.log(accounts[0])
+      // await transaction.wait()
+      // let a = '0'
+      // signer.getAddress().then((address) => {
+      //   a = address
+      // });
+      // let b = provider.getBalance(a)
+      // setAddress(a)
+      
+      getBalance()
+      // setLoading(false)
+      // 
     }
   }
 
   async function sendCoins(){
-    loading = true;
+    
     if (typeof window.ethereum !== 'undefined'){
+
+      fetch("/genProof",
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                amt: amount
+            }),
+        }).then((response) => response.json())
+        .then((data) => console.log(data));
+
       await requestAccount()
-      
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress, XContract.abi, signer)
-      const transaction = await contract.transfer(userAccount, amount)
+      const transaction = await contract.transfer(recipient, amount)
       await transaction.wait()
-
+      
       contract.events.UpdateState({}, (error, msg)=> {
         if(!error) {
           console.log(msg);
-          loading = false;
+          
         } else {
           console.log(error);
         }
@@ -141,6 +176,7 @@ function Home() {
     <div className='home'>
       <h1>Home</h1>
       <Typography variant = "h4"> Nhat Huyen's Internship </Typography>
+      <p>The current time is {currentTime}.</p>
       <Container maxWidth = "sm" className = {classes.cardGrid}> 
         <Grid container spacing ={4}>
           <Grid item> 
@@ -151,17 +187,15 @@ function Home() {
                   title="Image title" /> */}
 
               <CardContent className = {classes.cardContent}>
-                <Typography gutterBottom variant = "h5"> Say Greet </Typography>
-       
+                <Typography gutterBottom variant = "h5"> Account </Typography>
+                
                 {/* <Dimmer active inverted>
                   <Loader>Loading</Loader>
                 </Dimmer> */}
-                {loading && (
-                    <CircularProgress size={24} className={classes.buttonProgress} />
-                )}
+                
               
             
-                {/* <Typography textAlign='left'> {balance} wei</Typography> */}
+                <Typography textAlign='left'> {userAccount} </Typography>
                 <Typography textAlign='left'> {greeting}</Typography>
                 {/* <input 
                   onChange={e => setGreetingValue(e.target.value)} 
@@ -196,15 +230,21 @@ function Home() {
 
             <CardContent className = {classes.cardContent}>
               <Typography gutterBottom variant = "h5"> Balance </Typography>
-              <TextField onChange={e => setUserAccount(e.target.value)} placeholder="Account ID" 
+              {loading && (
+                    <CircularProgress size={24} className={classes.buttonProgress} />
+                )}
+              <Typography gutterBottom> {balance}</Typography>
+              <TextField onChange={e => setTo(e.target.value)} placeholder="Recipient Account ID" 
                     variant='outlined'
                     fullWidth
                     color ="secondary"
+                    value = {recipient}
                     className={classes.field}/>
               <TextField onChange={e => setAmount(e.target.value)} placeholder="Amount" variant='outlined'
                   fullWidth
                   color ="secondary"
                   className={classes.field}
+                  
                 /> 
             </CardContent>
             <CardActions>
