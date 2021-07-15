@@ -22,7 +22,7 @@ class Verifier:
         print("-------------")
         print("Condition : Check t_hat ==? t(x) :")
         gthx = (g**proof.t) * (h**proof.taux)
-        gthxV = (proof.V**z*z) * (g**proof.sigma) * proof.T1**x * (proof.T2**(x*x))
+        gthxV = (proof.V**(z*z)) * (g**proof.sigma) * proof.T1**x * (proof.T2**(x*x))
         # print("gthx = ", gthx)
         # print("gthxV = ", gthxV)
         if (gthx == gthxV):

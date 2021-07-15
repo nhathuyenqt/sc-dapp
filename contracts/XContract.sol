@@ -1,9 +1,13 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
+import "./ECContract.sol";
 import "hardhat/console.sol";
 
 contract XContract{
+
+    using EllipticCurve for uint256;
+    using EllipticCurve for Utils.G1Point;
 
     string public name = 'Xcontract';
     string symbol;
@@ -47,18 +51,29 @@ contract XContract{
         emit TestMsg(symbol);
     }
 
-    function sendProof(string memory _taux, string memory _muy, string memory _t, string memory _l, string memory _r, string memory _A, string memory _S, string memory _T1, string memory _T2, string memory _V, string memory _sig) public view {
-        console.log("Proof.taux : ", _taux);
-        console.log("Proof.muy : ", _muy);
-        console.log("Proof.muy : ", _t);
+    function privateTransfer(string memory y) public {
+
+        //string memory _taux, string memory _muy, string memory _t, string memory _l, string memory _r, string memory _A, string memory _S, string memory _T1, string memory _T2, string memory _V, string memory _sig) public{
+        //     console.log("Proof.taux : ", _taux);npm 
+        //     console.log("Proof.muy : ", _muy);
+        //     console.log("Proof.muy : ", _t);
+        // console.log("Proof test : ", keys);
     }
+
+    // function transfer(string) external {
+    //     require(balances[msg.sender] >= amount, 'Not enough tokens');
+    //     balances[msg.sender] -= amount;
+    //     balances[to] += amount;
+    //     emit UpdateState(msg.sender, balances[msg.sender]);
+    //     // emit UpdateState(to, balances[to]);
+    // }
 
     function transfer(address to, uint amount) external {
         require(balances[msg.sender] >= amount, 'Not enough tokens');
         balances[msg.sender] -= amount;
         balances[to] += amount;
         emit UpdateState(msg.sender, balances[msg.sender]);
-        emit UpdateState(to, balances[to]);
+        // emit UpdateState(to, balances[to]);
     }
 
     function balanceOf(address account) external view returns (uint){

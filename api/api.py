@@ -28,7 +28,7 @@ def genProof():
     message = {
         'status': 200,
         'message': 'OK',
-        'scores': res
+        'data': res
     }
     resp = jsonify(message)
     resp.status_code = 200

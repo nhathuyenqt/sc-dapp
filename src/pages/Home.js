@@ -5,12 +5,12 @@ import {Typography, Button, AppBar, Spinner, Card,  CircularProgress, Container,
 import  useStyles  from './Styles.js';
 import {useState, useEffect} from 'react'
 import {ethers} from 'ethers'
-import { Dimmer, Loader, Image, Segment, } from 'semantic-ui-react'
+import xtype from 'xtypejs'
 
 import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
 
 
-const contractAddress = '0xc67F486b1d7f4Eaa44639B5e063E66B84CF4F512' // rinkeby
+const contractAddress = '0x59D145690a0665b17785D0eF0e13f05CE9E850c1' // rinkeby
 // const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
 var loading = false;
 
@@ -25,7 +25,7 @@ function Home() {
   const [recipient, setTo] = useState("0xC5e65BF63b33B865e78A02b13f0db60713c3Ff96")
   const [currentTime, setCurrentTime] = useState(0);
 
- 
+  const storage = 
   useEffect(() => {
     fetch('/time').then(res => res.json()).then(data => {
       setCurrentTime(data.time);
@@ -140,8 +140,52 @@ function Home() {
     }
   }
 
-  async function sendCoins(){
+  function firstFunction(_callback){
+    _callback();    
+}
+  
+  async function genProof(){
+    fetch("/genProof",
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                amt: amount
+            }),
+        }).then((response) => response.json())
+        .then((message) => {
+          var msg2=JSON.stringify(message['data'])
+          console.log("hello 1", msg2)
+          return msg2
+          
+        })
+  }
+
+  async function sendPrivateToken(){
     
+    if (typeof window.ethereum !== 'undefined'){
+      await requestAccount()
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, XContract.abi, signer)
+      // function sendPrivateToken(function() {
+      //   console.log('huzzah, I\'m done!');
+      // });  
+      var messageProof = await genProof().then((proof) => {
+        console.log("Check type of Proof 1 : ", proof)
+        console.log("hello 2")
+        const transaction = contract.privateTransfer(messageProof)
+      }
+
+      )
+      
+      
+ 
+    }
+  }
+
+  async function sendCoins(){
+    var messageProof
     if (typeof window.ethereum !== 'undefined'){
 
       fetch("/genProof",
@@ -152,22 +196,27 @@ function Home() {
                 amt: amount
             }),
         }).then((response) => response.json())
-        .then((data) => console.log(data));
-
+        .then((message) => {
+          messageProof = JSON.stringify(message['data'])
+          console.log(messageProof)
+          console.log("Check type of Proof: ", xtype(messageProof))
+        });
+     
       await requestAccount()
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress, XContract.abi, signer)
       const transaction = await contract.transfer(recipient, amount)
-      await transaction.wait()
+      // const transaction = await contract.privateTransfer(messageProof)
       
-      contract.events.UpdateState({}, (error, msg)=> {
-        if(!error) {
-          console.log(msg);
+      // await transaction.wait()
+      
+      contract.on("UpdateState", (add, newBal) => {
+   
+          console.log("sender ", add)
+          console.log("new Balance ", newBal.toString())
           
-        } else {
-          console.log(error);
-        }
+       
       });
     }
   }
@@ -250,6 +299,7 @@ function Home() {
             <CardActions>
               <Button size ="small" color="primary" onClick={getBalance} > Get Balance </Button>
               <Button size ="small" color="primary" onClick={sendCoins} >Send</Button>
+              <Button size ="small" color="primary" onClick={sendPrivateToken} >Send Token</Button>
     
               
             </CardActions>

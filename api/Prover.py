@@ -113,9 +113,10 @@ class Prover:
         # T21 = g**(t2*x*x)*h**(tau2*x*x)
         # T22 = T2**x*x
         # print("check T21 and T22\n", T21,"\n", T22)
-
-        Vexp = self.V**z*z
-        Vexp2 = h**(gama*z*z) * g**(v*z*z)
+        print((self.V), " \n ", (z*z))
+        Vexp = self.V**(z*z)
+        
+        # Vexp2 = h**(gama*z*z) * g**(v*z*z)
         # print("check Vexp and Vexp\n", Vexp,"\n", Vexp2, "\n")
 
         l  = add(l0, mul(l1, x))

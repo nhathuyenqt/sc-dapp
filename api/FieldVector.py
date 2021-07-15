@@ -1,6 +1,5 @@
 from GlobalConfig import *
 
-
     
 def subtract(vec1, vec2):
 
