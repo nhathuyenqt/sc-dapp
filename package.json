@@ -36,7 +36,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "test-api": "cd api && flask test",
-    "start-api": "cd api && flask run --no-debugger"
+    "start-api": "cd scripts/api && flask run --no-debugger"
   },
   "eslintConfig": {
     "extends": [

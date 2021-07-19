@@ -1,3 +1,0 @@
-pyparsing==2.1.5
-hypothesis
-pytest

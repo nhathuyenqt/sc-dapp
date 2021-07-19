@@ -7,10 +7,11 @@ import {useState, useEffect} from 'react'
 import {ethers} from 'ethers'
 import xtype from 'xtypejs'
 
+
 import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
 
 
-const contractAddress = '0x59D145690a0665b17785D0eF0e13f05CE9E850c1' // rinkeby
+const contractAddress = '0xdADda2cfff603eE9BE63b8E427b7992906729Aeb' // rinkeby
 // const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
 var loading = false;
 
@@ -126,7 +127,7 @@ function Home() {
       const transaction = await contract.register()
       // var accounts = await provider.getAccounts();
       // console.log(accounts[0])
-      // await transaction.wait()
+      await transaction.wait()
       // let a = '0'
       // signer.getAddress().then((address) => {
       //   a = address
@@ -140,49 +141,47 @@ function Home() {
     }
   }
 
-  function firstFunction(_callback){
-    _callback();    
+  async function genProof() {
+    const response = await fetch("/genProof", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amt: amount,
+      }),
+    })
+    let result
+    await response.json().then((message) => {
+      result = JSON.stringify(message["data"]);
+      console.log("hello 1", result);
+    });
+    return result
 }
-  
-  async function genProof(){
-    fetch("/genProof",
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                amt: amount
-            }),
-        }).then((response) => response.json())
-        .then((message) => {
-          var msg2=JSON.stringify(message['data'])
-          console.log("hello 1", msg2)
-          return msg2
-          
-        })
-  }
 
-  async function sendPrivateToken(){
-    
-    if (typeof window.ethereum !== 'undefined'){
-      await requestAccount()
+  async function sendPrivateToken() {
+    if (typeof window.ethereum !== "undefined") {
+      await requestAccount();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, XContract.abi, signer)
+      const contract = new ethers.Contract(
+        contractAddress,
+        XContract.abi,
+        signer
+      );
       // function sendPrivateToken(function() {
       //   console.log('huzzah, I\'m done!');
-      // });  
-      var messageProof = await genProof().then((proof) => {
-        console.log("Check type of Proof 1 : ", proof)
-        console.log("hello 2")
-        const transaction = contract.privateTransfer(messageProof)
-      }
-
-      )
-      
-      
- 
+      // });
+      let messageProof = await genProof();
+      // console.log("Check type of Proof 1 : ", messageProof);
+      // console.log("hello 2");
+      let msg2 = JSON.stringify(messageProof)
+      // msg2 =  "hello"
+      const transaction = await contract.privateTransfer(msg2);
+      console.log("transaction", transaction);
     }
   }
+
+
+    
 
   async function sendCoins(){
     var messageProof
@@ -293,7 +292,7 @@ function Home() {
                   fullWidth
                   color ="secondary"
                   className={classes.field}
-                  
+                  defaultValue = {1}
                 /> 
             </CardContent>
             <CardActions>

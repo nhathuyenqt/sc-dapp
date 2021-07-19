@@ -1,7 +1,0 @@
-
-ac17
-=========================================
-.. automodule:: ac17
-    :show-inheritance:
-    :members:
-    :undoc-members:
