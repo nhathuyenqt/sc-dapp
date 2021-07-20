@@ -11,6 +11,18 @@ from api.Proof import *
 # acc_address = '0xC5e65BF63b33B865e78A02b13f0db60713c3Ff96'
 # key = '0x35b2f7395b5fd9a256dc9ecc113e04a0777dcd3660bb7b6a4d7687c7ef3c7ed1'
 # acct = w3.eth.account.privateKeyToAccount(key)
+
+w3 = Web3(HTTPProvider("https://rinkeby.infura.io/v3/5a2983b2fe824192949e7e0f80494758"))
+deployedContract =  json.load(open('./src/artifacts/contracts/Xcontract.sol/XContract.json'))
+abi = deployedContract['abi']
+bytecode = deployedContract['bytecode']
+# contract = w3.eth.contract(abi=abi, bytecode=bytecode)
+contract_instance = w3.eth.contract(abi=abi, address=contract_address)
+acc_address = '0xC5e65BF63b33B865e78A02b13f0db60713c3Ff96'
+
+key = '0x35b2f7395b5fd9a256dc9ecc113e04a0777dcd3660bb7b6a4d7687c7ef3c7ed1'
+acct = w3.eth.account.privateKeyToAccount(key)
+
 def reverse(a):
     if (type(a) ==  list):
         for i in range(len(a)):
@@ -42,7 +54,10 @@ def handle_event(event):
     print("Confirm y ",c['y'])
     print("Confirm z ",c['z'])
     v = Verifier()
-    print("VERIFIED ", v.verify(proof, challenge))
+    result = v.verify(proof, challenge)
+    print(id, " VERIFIED ", result)
+    tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+    signed_tx = w3.eth.account.signTransaction(tx, key)
 
 async def log_loop(event_filter, poll_interval):
     while True:
@@ -51,18 +66,14 @@ async def log_loop(event_filter, poll_interval):
             # print("Prove")
         await asyncio.sleep(poll_interval)
 
-if __name__ == '__main__':
 
-    w3 = Web3(HTTPProvider("https://rinkeby.infura.io/v3/5a2983b2fe824192949e7e0f80494758"))
+if __name__ == '__main__':
+    
     print('Connected ', w3.isConnected())
 
-    deployedContract =  json.load(open('./src/artifacts/contracts/Xcontract.sol/XContract.json'))
-    abi = deployedContract['abi']
-    bytecode = deployedContract['bytecode']
-    # contract = w3.eth.contract(abi=abi, bytecode=bytecode)
-    contract_instance = w3.eth.contract(abi=abi, address=contract_address)
+    
 
-    event_filter = contract_instance.events.NewRequest.createFilter(fromBlock='latest')
+    event_filter = contract_instance.events.NewRequest.createFilter(fromBlock='latest')    
     loop = asyncio.get_event_loop()
     try:
         loop.run_until_complete(

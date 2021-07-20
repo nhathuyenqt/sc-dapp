@@ -3,17 +3,16 @@ import './App.css';
 import Navbar from './components/Navbar';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import Home from './pages/Home';
+import History from './pages/History';
 import Reports from './pages/Reports';
+import GroupList from './pages/AdminPage';
 // import Products from './pages/Products';
 
-import {useState} from 'react'
-import {ethers} from 'ethers'
-import XContract from './artifacts/contracts/XContract.sol/XContract.json'
-
-
-const contractAddress = '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'
+import { FirebaseDatabaseProvider } from "@react-firebase/database";
 
 function App() {
+
+  
   // const [greeting, setGreetingValue] = useState()
 
   // async function requestAccount(){
@@ -61,12 +60,15 @@ function App() {
       //   </header> */}
       <Router>
         <Navbar />
-        <Switch>
-          <Route path='/' exact component={Home} />
-          <Route path='/reports' component={Reports} />
-          {/* <Route path='/products' component={Products} /> */}
-        </Switch>
+          <Switch>
+            <Route path='/' exact component={Home} />
+            <Route path='/history' component={History} />
+            <Route path='/reports' component={Reports} />
+            <Route path='/admin' component={GroupList} />
+            {/* <Route path='/products' component={Products} /> */}
+          </Switch>
       </Router>
+      
     </div>
   );
 }

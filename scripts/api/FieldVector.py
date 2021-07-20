@@ -5,7 +5,7 @@ from charm.toolbox.eccurve import prime192v1
 import numpy as np
 
 
-contract_address = '0xdADda2cfff603eE9BE63b8E427b7992906729Aeb'
+contract_address = '0x64AB752fec1fFD6602D3b44c2Fd1AdC7704a03C3'
 n = 128
 # global group
 # group = IntegerGroup()
@@ -49,8 +49,6 @@ def exp_vector(x, y):
         # res = res * (x[i]**group1.init(ZR, y[i]))
         res = res* (x[i]**y[i])
     return res
-
-
 
 def inner_product(vec1, vec2):
     product = group1.init(ZR, 0)

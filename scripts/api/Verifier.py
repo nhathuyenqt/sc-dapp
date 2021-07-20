@@ -48,6 +48,6 @@ class Verifier:
         else:
             print("False")
             res = False
-        print("\n-------------> Final Verify? ", str(res))
+        print("-------------> Final Verify? ", str(res))
         return res
         

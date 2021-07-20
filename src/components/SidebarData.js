@@ -18,9 +18,21 @@ export const SidebarData = [
     cName: 'nav-text'
   },
   {
+    title: 'History',
+    path: '/history',
+    icon: <FaIcons.FaHistory />,
+    cName: 'nav-text'
+  },
+  {
     title: 'Messages',
     path: '/messages',
     icon: <FaIcons.FaEnvelopeOpenText />,
+    cName: 'nav-text'
+  },
+  {
+    title: 'Admin',
+    path: '/admin',
+    icon: <IoIcons.IoMdHelpCircle />,
     cName: 'nav-text'
   },
   {

@@ -10,7 +10,8 @@ contract XContract{
     uint public totalSupply = 1000000;
     uint public initialSupply = 10000;
 
-    mapping(address => uint) balances;
+    mapping(address => uint) balance;
+    mapping(address => bool) validAccount;
     address public association;
     Request[] requestList;
     uint numberOfClosedRq;
@@ -35,7 +36,7 @@ contract XContract{
     }
 
     constructor(){
-        balances[msg.sender] = totalSupply;
+        balance[msg.sender] = totalSupply;
         association = msg.sender;
         symbol = "000";
         console.log("Changing greeting from '%s'", symbol);
@@ -43,12 +44,13 @@ contract XContract{
         numberOfRequest = 0;
     }
 
-    function register() public {
-        balances[msg.sender] = initialSupply;
+    function register(address newAcc) onlyAS public {
+        balance[newAcc] = initialSupply;
+        validAccount[newAcc] = true;
     }
 
     function fundToAccount(uint amt, address user) public onlyAS{
-        balances[user] += amt;
+        balance[user] += amt;
     }
 
     function greet() public view returns (string memory) {
@@ -84,10 +86,10 @@ contract XContract{
     // }
 
     function transfer(address to, uint amount) external {
-        require(balances[msg.sender] >= amount, 'Not enough tokens');
-        balances[msg.sender] -= amount;
-        balances[to] += amount;
-        emit UpdateState(msg.sender, balances[msg.sender]);
+        require(balance[msg.sender] >= amount, 'Not enough tokens');
+        balance[msg.sender] -= amount;
+        balance[to] += amount;
+        emit UpdateState(msg.sender, balance[msg.sender]);
         // emit UpdateState(to, balances[to]);
     }
 
@@ -98,9 +100,11 @@ contract XContract{
             requestList[id].state = State.Cancel;
     }   
     
-    function balanceOf(address account) external view returns (uint){
-        console.log("Get balance of '%s'", account);
-        return balances[account];
+    function balanceOf() external view returns (uint){
+        if (validAccount[msg.sender] == false)
+            revert();
+        
+        return balance[msg.sender];
     }
 
 }

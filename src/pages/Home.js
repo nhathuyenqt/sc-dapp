@@ -11,7 +11,7 @@ import xtype from 'xtypejs'
 import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
 
 
-const contractAddress = '0xdADda2cfff603eE9BE63b8E427b7992906729Aeb' // rinkeby
+const contractAddress = '0xEc07212b5A645CE0570d2091f669845D42828128' // rinkeby
 // const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
 var loading = false;
 
