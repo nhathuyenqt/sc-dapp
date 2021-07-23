@@ -9,7 +9,7 @@ print('Connected ', w3.isConnected())
 deployedContract =  json.load(open('frontend/src/XContract.json'))
 abi = deployedContract['abi']
 bytecode = deployedContract['bytecode']
-contract_address = '0xdADda2cfff603eE9BE63b8E427b7992906729Aeb'
+contract_address = '0x96eb60A8c1Cd5353d093eB7A3FE47217fCaAfC14'
 
 
 

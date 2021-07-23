@@ -10,8 +10,15 @@ contract XContract{
     uint public totalSupply = 1000000;
     uint public initialSupply = 10000;
 
+    struct ElBalance {
+        string CL;
+        string CR;
+    }
+
     mapping(address => uint) balance;
-    mapping(address => bool) validAccount;
+    mapping(address => bool) validAddress;
+    mapping(string => ElBalance) public acc;
+    
     address public association;
     Request[] requestList;
     uint numberOfClosedRq;
@@ -26,6 +33,7 @@ contract XContract{
         State state;        
     }
 
+    event InitBalance(string pk);
     event UpdateState(address add, uint balance);
     event NewRequest(uint id, string proof);
     event TestMsg(string newMsg);
@@ -37,6 +45,7 @@ contract XContract{
 
     constructor(){
         balance[msg.sender] = totalSupply;
+        validAddress[msg.sender] = true;
         association = msg.sender;
         symbol = "000";
         console.log("Changing greeting from '%s'", symbol);
@@ -44,9 +53,23 @@ contract XContract{
         numberOfRequest = 0;
     }
 
-    function register(address newAcc) onlyAS public {
+    function register(address newAcc)  public {
         balance[newAcc] = initialSupply;
-        validAccount[newAcc] = true;
+        validAddress[newAcc] = true;
+        
+    }
+
+    function registerKey(string calldata key) public {
+        if (validAddress[msg.sender] == false)
+            revert();
+        emit InitBalance(key);               
+    }
+
+    function initElBalance(string calldata y, string calldata cL, string calldata cR) public {
+        console.log(msg.sender);
+        console.log(association);
+        acc[y] = ElBalance({CL : cL, CR : cR});    
+                 
     }
 
     function fundToAccount(uint amt, address user) public onlyAS{
@@ -101,10 +124,18 @@ contract XContract{
     }   
     
     function balanceOf() external view returns (uint){
-        if (validAccount[msg.sender] == false)
+        if (validAddress[msg.sender] == false)
             revert();
         
         return balance[msg.sender];
     }
 
+    function ElBalanceOf(string memory y) external view returns (ElBalance memory){
+        
+        // if (validAddress[msg.sender] == false)
+        //     revert();
+        
+        
+        return acc[y];
+    }
 }

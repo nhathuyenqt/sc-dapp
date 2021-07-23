@@ -1,11 +1,12 @@
 # from charm.toolbox.integergroup import IntegerGroup
 # from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G2,GT,pair
 from charm.toolbox.ecgroup import ECGroup,ZR,G
-from charm.toolbox.eccurve import prime192v1
+from charm.toolbox.eccurve import prime192v1, secp256k1
 import numpy as np
 
 
-contract_address = '0x64AB752fec1fFD6602D3b44c2Fd1AdC7704a03C3'
+
+contract_address = '0x2c934A1a4F5fC1E96Cf55FDbCbFc4614580B730a'
 n = 128
 # global group
 # group = IntegerGroup()
@@ -13,6 +14,7 @@ n = 128
 global group1
 # group1 = PairingGroup('SS512')
 group1 = ECGroup(prime192v1)
+group2 = ECGroup(secp256k1)
 
 
 # rand = group2.random(ZR)

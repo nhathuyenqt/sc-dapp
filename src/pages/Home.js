@@ -9,15 +9,16 @@ import xtype from 'xtypejs'
 
 
 import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
+import { ContactSupportOutlined } from '@material-ui/icons';
 
 
-const contractAddress = '0xEc07212b5A645CE0570d2091f669845D42828128' // rinkeby
+const contractAddress = '0x2c934A1a4F5fC1E96Cf55FDbCbFc4614580B730a' // rinkeby
 // const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
 var loading = false;
 
 function Home() {
   const classes = useStyles()
-
+  
   const [greeting, setGreetingValue] = useState('')
   const [userAccount, setUserAccount] = useState('')
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,10 @@ function Home() {
   const [recipient, setTo] = useState("0xC5e65BF63b33B865e78A02b13f0db60713c3Ff96")
   const [currentTime, setCurrentTime] = useState(0);
 
-  const storage = 
+  const [y, setY] = useState("");
+  const [g, setG] = useState("");
+  const [x, setX] = useState("");
+
   useEffect(() => {
     fetch('/time').then(res => res.json()).then(data => {
       setCurrentTime(data.time);
@@ -141,6 +145,31 @@ function Home() {
     }
   }
 
+  async function genKey(){
+    const response = await fetch("/genKey", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    })
+
+    let result
+    await response.json().then((message) => {
+      result = message["data"];
+      console.log(result);
+      const yy  = result["y"];
+      console.log(yy);
+      setY(yy);
+      setX(result["x"]);
+      setG(result["g"]);
+      
+   
+    });
+
+      console.log(y);
+      console.log("x ", x);
+      console.log("g ", g);
+
+  }
+
   async function genProof() {
     const response = await fetch("/genProof", {
       method: "POST",
@@ -152,10 +181,32 @@ function Home() {
     let result
     await response.json().then((message) => {
       result = JSON.stringify(message["data"]);
-      console.log("hello 1", result);
+
     });
     return result
-}
+  }
+
+  async function getElBalance(){
+    setLoading(true)
+    if (typeof window.ethereum !== 'undefined'){
+
+      const response = await fetch("/genElBalance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      })
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      const contract = new ethers.Contract(contractAddress, XContract.abi, provider)
+      const signer =  provider.getSigner()
+      const [account] = await window.ethereum.request({method: 'eth_requestAccounts'})
+      const acc = signer.getAddress()
+      const b = await contract.ElBalanceOf(y)
+      console.log('address: ', acc)
+      console.log('balance: ', b.toString())
+      setBalance(b.toString())
+      setLoading(false)
+    }
+  }
 
   async function sendPrivateToken() {
     if (typeof window.ethereum !== "undefined") {
@@ -263,8 +314,8 @@ function Home() {
               <CardActions>
                
                 <Button size ="small" color="primary" onClick={register} >Register</Button>
-                <Button size ="small" color="primary" onClick={setGreeting} >Set</Button>
-                <Button size ="small" color="primary" onClick={getBalance} >Update</Button>
+                <Button size ="small" color="primary" onClick={genKey} >Generate Key-pair</Button>
+                <Button size ="small" color="primary" onClick={getElBalance} >Get El Balance</Button>
                 
               </CardActions>
             </Card>

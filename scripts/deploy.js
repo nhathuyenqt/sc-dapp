@@ -11,6 +11,11 @@ async function main(){
 	const XContract = await ethers.getContractFactory('XContract');
 	const xc = await XContract.deploy();
 	console.log(`Contract address: ${xc.address}`);
+	const data = xc.address
+	fs.writeFile("contract_address.txt", data, err => {
+		// In case of a error throw err.
+		if (err) throw err;
+	  });
 
 	// const input = fs.readFileSync('XContract.sol');
 	// const output = solc.compile(input.toString(), 1);
