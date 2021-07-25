@@ -6,19 +6,21 @@ import  useStyles  from './Styles.js';
 import {useState, useEffect} from 'react'
 import {ethers} from 'ethers'
 import xtype from 'xtypejs'
+import text  from './../contract_address.json';
 
 
 import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
 import { ContactSupportOutlined } from '@material-ui/icons';
 
 
-const contractAddress = '0x2c934A1a4F5fC1E96Cf55FDbCbFc4614580B730a' // rinkeby
-// const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+// const contractAddress = '0x2c934A1a4F5fC1E96Cf55FDbCbFc4614580B730a' // rinkeby
+const contractAddress = text['contract_address']
 var loading = false;
 
 function Home() {
+
   const classes = useStyles()
-  
+
   const [greeting, setGreetingValue] = useState('')
   const [userAccount, setUserAccount] = useState('')
   const [loading, setLoading] = useState(false);
@@ -26,10 +28,13 @@ function Home() {
   const [amount, setAmount] = useState()
   const [recipient, setTo] = useState("0xC5e65BF63b33B865e78A02b13f0db60713c3Ff96")
   const [currentTime, setCurrentTime] = useState(0);
-
+  const [accId, setAccId] = useState(0);
   const [y, setY] = useState("");
   const [g, setG] = useState("");
   const [x, setX] = useState("");
+  const [accPubkey, setAccPubkey] = useState("");
+  const [pubkeyList, setPubkeyList] = useState({});
+
 
   useEffect(() => {
     fetch('/time').then(res => res.json()).then(data => {
@@ -43,6 +48,7 @@ function Home() {
   if (window.ethereum){
     window.ethereum.on('accountsChanged', function(accounts){
       setUserAccount(accounts[0])
+
     })
   }
   // async function updateStateEventListener(callback) {
@@ -110,6 +116,7 @@ function Home() {
       const signer =  provider.getSigner()
       const [account] = await window.ethereum.request({method: 'eth_requestAccounts'})
       const acc = signer.getAddress()
+
       const b = await contract.balanceOf(account)
       // setAmount(balance.toString())
       console.log('provider: ', provider)
@@ -127,11 +134,12 @@ function Home() {
       // await requestAccount()
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, XContract.abi, signer)
-      const transaction = await contract.register()
+      console.log("signer ", signer)
+      // const contract = new ethers.Contract(contractAddress, XContract.abi, signer)
+      // const transaction = await contract.register()
       // var accounts = await provider.getAccounts();
       // console.log(accounts[0])
-      await transaction.wait()
+      // await transaction.wait()
       // let a = '0'
       // signer.getAddress().then((address) => {
       //   a = address
@@ -139,16 +147,20 @@ function Home() {
       // let b = provider.getBalance(a)
       // setAddress(a)
       
-      getBalance()
+      // getBalance()
       // setLoading(false)
       // 
     }
   }
 
   async function genKey(){
+    console.log(accId)
     const response = await fetch("/genKey", {
-      method: "GET",
-      headers: { "Content-Type": "application/json" }
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accId: accId
+      }),
     })
 
     let result
@@ -161,12 +173,17 @@ function Home() {
       setX(result["x"]);
       setG(result["g"]);
       
-   
+      let pubkey = pubkeyList
+      const i = parseInt(accId, 10)
+      pubkey[i] = y;
+      setPubkeyList(pubkeyList);
+      console.log("pubkey1 ", pubkeyList);
     });
 
-      console.log(y);
+      
+      console.log(y); 
       console.log("x ", x);
-      console.log("g ", g);
+      console.log("pubkey ", pubkeyList);
 
   }
 
@@ -190,21 +207,25 @@ function Home() {
     setLoading(true)
     if (typeof window.ethereum !== 'undefined'){
 
-      const response = await fetch("/genElBalance", {
+      const response = await fetch("/getElBalance", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          y: y,
+          accId : accId
+        }),
       })
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum)
-      const contract = new ethers.Contract(contractAddress, XContract.abi, provider)
-      const signer =  provider.getSigner()
-      const [account] = await window.ethereum.request({method: 'eth_requestAccounts'})
-      const acc = signer.getAddress()
-      const b = await contract.ElBalanceOf(y)
-      console.log('address: ', acc)
-      console.log('balance: ', b.toString())
-      setBalance(b.toString())
       setLoading(false)
+      // const provider = new ethers.providers.Web3Provider(window.ethereum)
+      // const contract = new ethers.Contract(contractAddress, XContract.abi, provider)
+      // const signer =  provider.getSigner()
+      // const [account] = await window.ethereum.request({method: 'eth_requestAccounts'})
+      // const acc = signer.getAddress()
+      // const b = await contract.ElBalanceOf(y)
+      // console.log('address: ', acc)
+      // console.log('balance: ', b.toString())
+      // setBalance(b.toString())
+      // setLoading(false)
     }
   }
 
@@ -224,16 +245,65 @@ function Home() {
       let messageProof = await genProof();
       // console.log("Check type of Proof 1 : ", messageProof);
       // console.log("hello 2");
-      let msg2 = JSON.stringify(messageProof)
+      // let msg2 = JSON.stringify(messageProof)
       // msg2 =  "hello"
-      const transaction = await contract.privateTransfer(msg2);
+      // const transaction = await contract.privateTransfer(msg2);
+      // console.log("transaction", transaction);
+
+      
+    }
+  }
+
+  async function genConfProof() {
+    setLoading(true)
+      const response = await fetch("/confTransfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          'y_sender': pubkeyList[0],
+          'y_recipient': pubkeyList[1],
+          'amt':3,
+          'b_after':197
+        }),
+      })
+      setLoading(false)
+      let result
+      await response.json().then((message) => {
+        result = JSON.stringify(message["data"]);
+
+      });
+      return result
+      
+
+    
+  }
+  async function confTransfer() {
+    if (typeof window.ethereum !== "undefined") {
+      await requestAccount();
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        contractAddress,
+        XContract.abi,
+        signer
+      );
+      // function sendPrivateToken(function() {
+      //   console.log('huzzah, I\'m done!');
+      // });
+      let messageProof = await genConfProof();
+      // console.log("Check type of Proof 1 : ", messageProof);
+      // console.log("hello 2");
+      let msg2 = JSON.stringify(messageProof)
+      // msg2 =  "hello"ßßßßßßßßß
+      const transaction = await contract.confTransfer(msg2, msg2);
       console.log("transaction", transaction);
+
+      
     }
   }
 
 
-    
-
+  
   async function sendCoins(){
     var messageProof
     if (typeof window.ethereum !== 'undefined'){
@@ -302,11 +372,10 @@ function Home() {
                   value = {greeting}
                 /> */}
                 <TextField
-                  onChange={e => setGreetingValue(e.target.value)} 
-                  placeholder="Set greeting"
-                  value = {greeting}
+                  onChange={e => setAccId(e.target.value)} 
+                  placeholder="ACC ID"
                   variant='outlined'
-                  fullWidth
+                  fullWidthadf
                   color ="secondary"
                   className={classes.field}
                 />
@@ -333,11 +402,17 @@ function Home() {
                     <CircularProgress size={24} className={classes.buttonProgress} />
                 )}
               <Typography gutterBottom> {balance}</Typography>
-              <TextField onChange={e => setTo(e.target.value)} placeholder="Recipient Account ID" 
+              <TextField onChange={e => setAccPubkey(e.target.value)} placeholder="My Account Public Key" 
                     variant='outlined'
                     fullWidth
                     color ="secondary"
-                    value = {recipient}
+                    value = {accPubkey}
+                    className={classes.field}/>
+              <TextField onChange={e => setTo(e.target.value)} placeholder="Recipient Public Key" 
+                    variant='outlined'
+                    fullWidth
+                    color ="secondary"
+                    defaultValue = {recipient}
                     className={classes.field}/>
               <TextField onChange={e => setAmount(e.target.value)} placeholder="Amount" variant='outlined'
                   fullWidth
@@ -350,7 +425,7 @@ function Home() {
               <Button size ="small" color="primary" onClick={getBalance} > Get Balance </Button>
               <Button size ="small" color="primary" onClick={sendCoins} >Send</Button>
               <Button size ="small" color="primary" onClick={sendPrivateToken} >Send Token</Button>
-    
+              <Button size ="small" color="primary" onClick={confTransfer} >Conf Transfer</Button>
               
             </CardActions>
           </Card>

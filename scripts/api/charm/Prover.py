@@ -36,7 +36,8 @@ class Prover:
     #     return group1.hash(i-1, c, a[i])
 
 
-    def prove(self, _v, gama):
+    def prove(self, _v):
+        gama = group1.random(ZR)
         self.v = _v
         self.cal_a_vector()
         self.a_L = [group1.init(ZR, x) for x in self.a_L]
@@ -131,7 +132,7 @@ class Prover:
 
         
         proof = Proof()
-        proof.set(taux, muy, t, l, r, self.A, self.S, T1, T2, self.V, sig)
+        proof.set(gama, taux, muy, t, l, r, self.A, self.S, T1, T2, self.V, sig)
 
         # print("check t(x)")
         # tx = t0 + t1*x + t2*x*x

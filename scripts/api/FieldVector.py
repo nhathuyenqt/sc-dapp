@@ -3,10 +3,12 @@
 from charm.toolbox.ecgroup import ECGroup,ZR,G
 from charm.toolbox.eccurve import prime192v1, secp256k1
 import numpy as np
+import json
+from web3 import Web3, HTTPProvider
 
-
-
-contract_address = '0x2c934A1a4F5fC1E96Cf55FDbCbFc4614580B730a'
+# w3 = Web3(HTTPProvider("https://rinkeby.infura.io/v3/6c2c14ab150c43cfb4a59654a7c5bb8c"))
+w3 = Web3(HTTPProvider("http://localhost:8545"))
+print('Connected ', w3.isConnected())
 n = 128
 # global group
 # group = IntegerGroup()

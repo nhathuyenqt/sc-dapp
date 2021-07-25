@@ -5,7 +5,8 @@ class Proof:
     def __init__(self):
         self.t = None
 
-    def set(self, _taux, _muy, _t, _l, _r, _A, _S, _T1, _T2, _V, _sig):
+    def set(self,_gama, _taux, _muy, _t, _l, _r, _A, _S, _T1, _T2, _V, _sig):
+        self.gama = _gama
         self.taux = _taux
         self.muy = _muy
         self.t = _t

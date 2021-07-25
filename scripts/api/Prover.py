@@ -32,6 +32,8 @@ class Prover:
         
 
     def commitment_for_vector(self, x0, x1, x2):
+        # print('self.h = ', self.h, type(self.h))
+        # print('self.h_vec = ', self.h_vec[0], type(self.h_vec[0]))
         c = (self.h**x0)* exp_vector(self.g_vec,x1)*exp_vector(self.h_vec,x2)
         # c = c[0]*c[1]
         
@@ -41,7 +43,8 @@ class Prover:
     #     return group1.hash(i-1, c, a[i])
 
 
-    def prove(self, _v, gama):
+    def prove(self, _v):
+        gama = group1.random(ZR)
         self.v = _v
         self.cal_a_vector()
         self.a_L = [group1.init(ZR, x) for x in self.a_L]
@@ -51,8 +54,7 @@ class Prover:
         # print(self.a_R)
         
         alpha = group1.random(ZR)
-        # print('alpha = ', alpha, type(alpha))
-        #(h**alpha)* exp_vector(g_vec,self.a_L)*exp_vector(h_vec,self.a_R)
+        
         self.A = self.commitment_for_vector(alpha, self.a_L, self.a_R) 
     
         s_L = [group1.random(ZR) for i in range(n)]
@@ -136,7 +138,7 @@ class Prover:
 
         
         proof = Proof()
-        proof.set(taux, muy, t, l, r, self.A, self.S, T1, T2, self.V, sig)
+        proof.set(gama, taux, muy, t, l, r, self.A, self.S, T1, T2, self.V, sig)
 
         # print("check t(x)")
         # tx = t0 + t1*x + t2*x*x

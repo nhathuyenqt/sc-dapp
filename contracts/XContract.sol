@@ -37,6 +37,7 @@ contract XContract{
     event UpdateState(address add, uint balance);
     event NewRequest(uint id, string proof);
     event TestMsg(string newMsg);
+    event NewConfTransfer(string proof1);
     
     modifier onlyAS() {
       require(msg.sender == association);
@@ -69,6 +70,7 @@ contract XContract{
         console.log(msg.sender);
         console.log(association);
         acc[y] = ElBalance({CL : cL, CR : cR});    
+        console.log("sender acc ", acc[y].CL, " and ", acc[y].CR);
                  
     }
 
@@ -99,6 +101,22 @@ contract XContract{
 
         return (numberOfRequest - 1); //id of his request
     }
+    function confTransfer(string memory proofForAmt, string memory proofForRemainBalance) public {
+        
+        // requestList.push(Request({
+        //     sender : msg.sender,
+        //     id : numberOfRequest,
+        //     proof : y,
+        //     state : State.Processing
+        // }));
+        // emit NewRequest(numberOfRequest, y);
+        console.log("Test Event'");
+        emit NewConfTransfer(proofForAmt);
+        // numberOfRequest += 1;
+
+        // return (numberOfRequest - 1); //id of his request
+    }
+
 
     // function transfer(string) external {
     //     require(balances[msg.sender] >= amount, 'Not enough tokens');
@@ -134,7 +152,7 @@ contract XContract{
         
         // if (validAddress[msg.sender] == false)
         //     revert();
-        
+        console.log("sender ", msg.sender);
         
         return acc[y];
     }

@@ -11,8 +11,9 @@ async function main(){
 	const XContract = await ethers.getContractFactory('XContract');
 	const xc = await XContract.deploy();
 	console.log(`Contract address: ${xc.address}`);
-	const data = xc.address
-	fs.writeFile("contract_address.txt", data, err => {
+	const add = { "contract_address" : xc.address}
+	let data = JSON.stringify(add)
+	fs.writeFileSync('src/contract_address.json', data, err => {
 		// In case of a error throw err.
 		if (err) throw err;
 	  });

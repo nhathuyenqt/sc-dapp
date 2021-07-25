@@ -30,16 +30,16 @@ from Prover import Prover
 from GlobalConfig import *
 
 # if __name__ == '__main__':
-prover = Prover()
-gama = group1.random(ZR)
-p, c = prover.prove(200, gama)
-print(type(p))
-tx = contract_instance.functions.sendProof(str(p.taux), str(p.muy), str(p.t), str(p.l), str(p.r), str(p.A), str(p.S), str(p.T1), str(p.T2), str(p.V), str(p.sigma)).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
-signed_tx = w3.eth.account.signTransaction(tx, key)
-#tx_receipt = w3.eth.getTransactionReceipt(tx_hash)
-hash = w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-print("Transaction send a proof and challenge to SC")
-print(hash.hex())
+# prover = Prover()
+# gama = group1.random(ZR)
+# p, c = prover.prove(200, gama)
+# print(type(p))
+# tx = contract_instance.functions.sendProof(str(p.taux), str(p.muy), str(p.t), str(p.l), str(p.r), str(p.A), str(p.S), str(p.T1), str(p.T2), str(p.V), str(p.sigma)).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+# signed_tx = w3.eth.account.signTransaction(tx, key)
+# #tx_receipt = w3.eth.getTransactionReceipt(tx_hash)
+# hash = w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+# print("Transaction send a proof and challenge to SC")
+# print(hash.hex())
 
     # verifer = Verifier()
     # verifer.verify(p, c)
