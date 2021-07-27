@@ -29,11 +29,10 @@ function Home() {
   const [recipient, setTo] = useState("0xC5e65BF63b33B865e78A02b13f0db60713c3Ff96")
   const [currentTime, setCurrentTime] = useState(0);
   const [accId, setAccId] = useState(0);
-  const [y, setY] = useState("");
-  const [g, setG] = useState("");
-  const [x, setX] = useState("");
   const [accPubkey, setAccPubkey] = useState("");
   const [pubkeyList, setPubkeyList] = useState({});
+  const [privkeyList, setPrivkeyList] = useState({});
+  const [gList, setG] = useState({});
 
 
   useEffect(() => {
@@ -62,7 +61,7 @@ function Home() {
 
   async function requestAccount(){
     const accounts = await window.ethereum.request({method : 'eth_requestAccounts'})
-    console.log(accounts[0]);
+    // console.log(accounts[0]);
     setUserAccount(accounts[0])
 
   }
@@ -167,22 +166,24 @@ function Home() {
     await response.json().then((message) => {
       result = message["data"];
       console.log(result);
-      const yy  = result["y"];
-      console.log(yy);
-      setY(yy);
-      setX(result["x"]);
-      setG(result["g"]);
-      
+      const y = result["y"];
+      const x = result["x"];
+      const g = result['g']
+      let sKey =  privkeyList
       let pubkey = pubkeyList
+      let G = gList
       const i = parseInt(accId, 10)
       pubkey[i] = y;
+      sKey[i] = x
+      G[i] = g
       setPubkeyList(pubkeyList);
+      setG(G);
+      setPrivkeyList(sKey);
       console.log("pubkey1 ", pubkeyList);
+      console.log("privkey1 ", privkeyList);
     });
 
       
-      console.log(y); 
-      console.log("x ", x);
       console.log("pubkey ", pubkeyList);
 
   }
@@ -198,6 +199,7 @@ function Home() {
     let result
     await response.json().then((message) => {
       result = JSON.stringify(message["data"]);
+     
 
     });
     return result
@@ -211,7 +213,6 @@ function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          y: y,
           accId : accId
         }),
       })
@@ -256,21 +257,25 @@ function Home() {
 
   async function genConfProof() {
     setLoading(true)
+    console.log("g ", gList[0])
       const response = await fetch("/confTransfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           'y_sender': pubkeyList[0],
           'y_recipient': pubkeyList[1],
+          'g_sender': gList[0],
           'amt':3,
-          'b_after':197
+          'b_after':197,
+          'x_sender': privkeyList[0]
         }),
       })
       setLoading(false)
       let result
       await response.json().then((message) => {
-        result = JSON.stringify(message["data"]);
-
+        // result = JSON.stringify(message["data"]);
+        result = message;
+        console.log("Res ", message )
       });
       return result
       
@@ -293,10 +298,16 @@ function Home() {
       let messageProof = await genConfProof();
       // console.log("Check type of Proof 1 : ", messageProof);
       // console.log("hello 2");
-      let msg2 = JSON.stringify(messageProof)
-      // msg2 =  "hello"ßßßßßßßßß
-      const transaction = await contract.confTransfer(msg2, msg2);
-      console.log("transaction", transaction);
+      // console.log("messageProof ",messageProof['rangeProofForAmt'])
+      const pr1 = JSON.stringify(messageProof['rangeProofForAmt'])
+      const pr2 = JSON.stringify(messageProof['rangeProofForRemainBalance'])
+      const pr3 = JSON.stringify(messageProof['sigmaProtocol'])
+      const data = JSON.stringify(messageProof['input'])
+      // let msg2 = JSON.stringify(messageProof)
+      // console.log(msg2)
+      // // msg2 =  "hello"ßßßßßßßßß
+      const transaction = await contract.confTransfer(pr1, pr2, pr3, data);
+      // console.log("transaction", transaction);
 
       
     }

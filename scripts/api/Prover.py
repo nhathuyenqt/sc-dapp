@@ -1,10 +1,9 @@
 # from .GlobalConfig import *
-from Proof import *
+from BulletProof import *
 from FieldVector import *
 
 class Prover:
     
-
     def __init__(self):
         self.g_vec = [group1.random(G) for i in range(n)]
         self.h_vec = [group1.random(G) for i in range(n)]
@@ -89,7 +88,7 @@ class Prover:
         # print(inner_product(subtract(subtract(self.a_L, uni_vec), self.a_R),y_vec))    
         i1 = inner_product(uni_vec, y_vec)
         i2 = inner_product(uni_vec, bin_vec)
-        sig = (z-z*z)*i1 - z*z*z*i2
+        sigma = (z-z*z)*i1 - z*z*z*i2
         # print("sigma ", sig)
         # t0 = z*z*v + sig
         # print("\nt0-1")
@@ -137,8 +136,8 @@ class Prover:
         challenge.set(x, y, z, self.g, self.h, self.g_vec, self.h_vec)
 
         
-        proof = Proof()
-        proof.set(gama, taux, muy, t, l, r, self.A, self.S, T1, T2, self.V, sig)
+        proof = BulletProof()
+        proof.set(gama, taux, muy, t, l, r, self.A, self.S, T1, T2, self.V, sigma)
 
         # print("check t(x)")
         # tx = t0 + t1*x + t2*x*x

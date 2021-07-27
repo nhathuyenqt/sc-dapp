@@ -15,9 +15,7 @@ n = 128
 # group.paramgen(1024)
 global group1
 # group1 = PairingGroup('SS512')
-group1 = ECGroup(prime192v1)
-group2 = ECGroup(secp256k1)
-
+group1 = ECGroup(secp256k1)
 
 # rand = group2.random(ZR)
 # print("rand ", rand)
@@ -56,8 +54,13 @@ def exp_vector(x, y):
 
 def inner_product(vec1, vec2):
     product = group1.init(ZR, 0)
+    # print("ccheck vec")
+    # print(vec1[0])
+    # print(vec2[0])
+    
     for i in range(n):
         product = product + vec1[i]*vec2[i]
+    
     return product
 
 

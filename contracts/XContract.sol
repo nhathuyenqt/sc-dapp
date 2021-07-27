@@ -37,7 +37,7 @@ contract XContract{
     event UpdateState(address add, uint balance);
     event NewRequest(uint id, string proof);
     event TestMsg(string newMsg);
-    event NewConfTransfer(string proof1);
+    event NewConfTransfer(string rangeproof1, string rangeproof2, string sigmaProof, string input);
     
     modifier onlyAS() {
       require(msg.sender == association);
@@ -49,7 +49,7 @@ contract XContract{
         validAddress[msg.sender] = true;
         association = msg.sender;
         symbol = "000";
-        console.log("Changing greeting from '%s'", symbol);
+        console.log("Deploy Successfull ");
         numberOfClosedRq = 0;
         numberOfRequest = 0;
     }
@@ -101,7 +101,7 @@ contract XContract{
 
         return (numberOfRequest - 1); //id of his request
     }
-    function confTransfer(string memory proofForAmt, string memory proofForRemainBalance) public {
+    function confTransfer(string memory proofForAmt, string memory proofForRemainBalance, string memory sigmaProof, string memory input) public {
         
         // requestList.push(Request({
         //     sender : msg.sender,
@@ -111,7 +111,7 @@ contract XContract{
         // }));
         // emit NewRequest(numberOfRequest, y);
         console.log("Test Event'");
-        emit NewConfTransfer(proofForAmt);
+        emit NewConfTransfer(proofForAmt, proofForRemainBalance, sigmaProof, input);
         // numberOfRequest += 1;
 
         // return (numberOfRequest - 1); //id of his request

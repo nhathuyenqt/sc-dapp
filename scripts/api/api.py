@@ -3,6 +3,7 @@ from flask import Flask
 from flask import request, jsonify
 from Prover import Prover
 from FieldVector import * 
+from SigmaProtocol import *
 import json
 from ElGama import *
 import asyncio
@@ -40,8 +41,15 @@ initB = 200
 # acct = w3.eth.account.privateKeyToAccount(key)
 
 app = Flask(__name__)
-el = ElGamal(group1)
 
+
+def reverse(a):
+    if (type(a) ==  list):
+        for i in range(len(a)):
+            a[i] = reverse(a[i])
+        return a
+    else:
+        return group1.deserialize(a.encode("utf-8"))
 
 def convert(a):
     if (type(a) ==  list):
@@ -66,17 +74,15 @@ def genKey():
     accId = int(accId)
     print("acc ID ", accId)
 
-    (public_key, secret_key) = el.keygen()
-    g = public_key['g']
-    h = public_key['h']
-    
-    y = convert(public_key['h'])
+    x = group1.random(ZR)
+    g = group1.random(G)
+    y = g**x
 
-    x = convert(secret_key['x'])
+    
     data = {
             'g': convert(g),
-            'y': y,
-            'x' : x
+            'y': convert(y),
+            'x' : convert(x)
         }
     message = {
         'status': 200,
@@ -91,21 +97,22 @@ def genKey():
     r = group1.random(ZR)
     CR = g**r
     CR = convert(CR)
-    CL = g**initB*(h**r)
+    CL = g**initB*(y**r)
     CL = convert(CL)
     if (accId == 1):
         acc_address = acc_address1
         key = key1
-        y1 = y
+        y1 = convert(y)
     else:
         acc_address = acc_address0
         key = key0
-        y0 = y
+        y0 = convert(y)
 
     print("y0 ", y0)
     print("y1 ", y1)
+    print("g ", g)
 
-    tx = contract_instance.functions.initElBalance(y, CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+    tx = contract_instance.functions.initElBalance(data['y'], CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
     signed_tx = w3.eth.account.signTransaction(tx, key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print("Init EL Balance ", hash.hex())
@@ -125,12 +132,10 @@ def getElBalance():
     else:
         y = y0
 
-    if 'address' in request.get_json():
-        address = request.get_json()['address']
-        # pwd = request.args.get('pwd')
-
+    print("check pubkey ", type(y))
     result = contract_instance.functions.ElBalanceOf(y).call()
     print(" =>>>>> result of balance ", result)
+    
     message = {
         'status': 200,
         'message': 'OK',
@@ -200,6 +205,8 @@ def genProof():
 
 
 def convertProofToJSON(p, c):
+    # for key in c.keys():
+    #     c[key] = convert(c[key])
     c.x = convert(c.x)
     c.y = convert(c.y)
     c.z = convert(c.z)
@@ -231,6 +238,10 @@ def convertProofToJSON(p, c):
 def confTransfer():
     if 'y_sender' in request.get_json():
         yS = request.get_json()['y_sender']
+    if 'x_sender' in request.get_json():
+        sk = request.get_json()['x_sender']
+    if 'g_sender' in request.get_json():
+        g = request.get_json()['g_sender']
     if 'y_recipient' in request.get_json():
         yR = request.get_json()['y_recipient']
     if 'amt' in request.get_json():
@@ -238,24 +249,40 @@ def confTransfer():
     if 'b_after' in request.get_json():
         b_after = request.get_json()['b_after']
     
+    balance = contract_instance.functions.ElBalanceOf(yS).call()
+
+    (CL, CR) = balance
+
+    CL = reverse(CL)
+    CR = reverse(CR)
+    g = reverse(g)
+    sk =reverse(sk)
+    yS = reverse(yS)
+    yR = reverse(yR)
+
+    amt = int(amt)
+    b_after = int(b_after)
     p = Prover()
     p1, c1 = p.prove(amt)
     rangeProofForAmt  = convertProofToJSON(p1, c1)
     p = Prover()
     p2, c2 = p.prove(b_after)
+    sigma = p2.sigma
+    z = c2.z
     rangeProofForRemainBalance = convertProofToJSON(p2, c2)
-    result = {'rangeProofForAmt':rangeProofForAmt, 'rangeProofForRemainBalance':rangeProofForRemainBalance}
+
+    sigmaProtocol = SigmaProtocol(yS, yR, g)
+    amt = group1.init(ZR, amt)
+    sigmaProof, input = sigmaProtocol.prove(sk, amt, b_after, p2.t, p2.taux, z, sigma)
+    for key in sigmaProof.keys():
+        sigmaProof[key] = convert(sigmaProof[key])
+    for key in input.keys():
+        input[key] = convert(input[key])
+    # print("sigm ", sigmaProof)
+    result = {'rangeProofForAmt':rangeProofForAmt, 'rangeProofForRemainBalance':rangeProofForRemainBalance, 'sigmaProtocol': sigmaProof, 'input': input}
     # print("check type ", type(json.dumps(rangeProofForAmt)))
     # result = contract_instance.functions.confTransfer(json.dumps(rangeProofForAmt), json.dumps(rangeProofForRemainBalance)).call()
     # print(" =>>>>> result of balance ", result)
-    message = {
-        'status': 200,
-        'message': 'OK',
-        'data': result
-    }
-
-
-    resp = jsonify(message)
-    resp.status_code = 200
-    return resp
+ 
+    return result
 

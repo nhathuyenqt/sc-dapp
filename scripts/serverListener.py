@@ -2,15 +2,16 @@ from web3 import Web3, HTTPProvider
 
 import json
 import asyncio
+from api.SigmaVerifier import *
 from api.FieldVector import *
 from api.Verifier import *
-from api.Proof import *
+from api.BulletProof import *
 from api.ElGama import *
 
-addr = json.load(open('./../src/contract_address.json'))
+addr = json.load(open('./src/contract_address.json'))
 contract_address = addr['contract_address']
 
-deployedContract =  json.load(open('./../src/artifacts/contracts/Xcontract.sol/XContract.json'))
+deployedContract =  json.load(open('./src/artifacts/contracts/Xcontract.sol/XContract.json'))
 abi = deployedContract['abi']
 bytecode = deployedContract['bytecode']
 # contract = w3.eth.contract(abi=abi, bytecode=bytecode)
@@ -48,7 +49,7 @@ def handle_event1(event):
     for k in p.keys():
         p[k] = reverse(p[k])
 
-    proof = Proof()
+    proof = BulletProof()
     proof.set(p['taux'], p['muy'], p['t'], p['l'], p['r'], p['A'], p['S'], p['T1'], p['T2'], p['V'], p['sigma'])
     challenge = Challenge()
     challenge.set(c['x'], c['y'], c['z'], c['g'], c['h'], c['g_vec'], c['h_vec'])
@@ -69,18 +70,23 @@ def handle_range_proof(proof):
     for k in p.keys():
         p[k] = reverse(p[k])
 
-    proof = Proof()
+    proof = BulletProof()
     proof.set(p['gama'], p['taux'], p['muy'], p['t'], p['l'], p['r'], p['A'], p['S'], p['T1'], p['T2'], p['V'], p['sigma'])
     challenge = Challenge()
     challenge.set(c['x'], c['y'], c['z'], c['g'], c['h'], c['g_vec'], c['h_vec'])
-    print("Confirm x ",c['x'])
-    print("Confirm y ",c['y'])
-    print("Confirm z ",c['z'])
     v = Verifier()
     result = v.verify(proof, challenge)
-    print(id, " VERIFIED ", result)
-    tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
-    signed_tx = w3.eth.account.signTransaction(tx, key)
+    return result
+    # tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+    # signed_tx = w3.eth.account.signTransaction(tx, key)
+def handle_sigma_proof(proof, info):
+    for i in proof.keys():
+        proof[i] = reverse(proof[i])
+    for i in info.keys():
+        info[i] = reverse(info[i])
+
+    return sigmaVerify(proof, info)
+    
 
 def handle_event(event):
     print("Load Event")
@@ -88,24 +94,48 @@ def handle_event(event):
     # print("Event ", event)
     data = json.loads(data)
     data = data['args']
-    proof1 = data['proof1']
-    proof1 = json.loads(proof1)
-    proof1 = json.loads(proof1)
-    print("proof 1", proof1)
-    proofForAmt = proof1["rangeProofForAmt"]
+    proofForAmt = data['rangeproof1']
+    proofForAmt = json.loads(proofForAmt)
+    # proof1 = json.loads(proof1)
+
     # proofForAmt = json.loads(proofForAmt)
     print()
-    print()
-    print()
+    proofForRemain = data['rangeproof2']
+    proofForRemain = json.loads(proofForRemain)
 
-    # print("proofForAmt", proofForAmt)
-    handle_range_proof(proofForAmt)
+    sigmaProof = data['sigmaProof']
+    sigmaProof = json.loads(sigmaProof)
+
+    info = data['input']
+    info = json.loads(info)
+
+    print("\n** Prove the sending amount is positive ** ")
+    result = handle_range_proof(proofForAmt)
+    if (result):
+        print(" =>  VERIFIED ")
+    else:
+        print(" =>  INVALID ")
+        return 0
+    print("\n** Prove the remain balance is positive **")
+    result = handle_range_proof(proofForRemain)
+    if (result):
+        print(" =>  VERIFIED ")
+    else:
+        print(" =>  INVALID ")
+        return 0
+    print("\n** Sigma Protocol ** \n")
+    result = handle_sigma_proof(sigmaProof, info)
+    if (result):
+        print("Sigma Proof is VALID ")
+    else:
+        print("Sigma Proof is NOT valid ")
+        return 0
 
 async def log_loop(event_filter, poll_interval):
     while True:
         for PairCreated in event_filter.get_new_entries():
             handle_event(PairCreated)
-            print("Prove")
+    
         await asyncio.sleep(poll_interval)
 
 
