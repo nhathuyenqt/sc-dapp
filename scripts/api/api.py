@@ -1,3 +1,4 @@
+from os import X_OK
 import time
 from flask import Flask
 from flask import request, jsonify
@@ -8,6 +9,7 @@ import json
 from ElGama import *
 import asyncio
 
+MAX = 20000
 
 addr = json.load(open('./../../src/contract_address.json'))
 contract_address = addr['contract_address']
@@ -118,29 +120,46 @@ def genKey():
     print("Init EL Balance ", hash.hex())
     return resp
 
+def readElBalance(g, x, y):
+    balance = contract_instance.functions.ElBalanceOf(y).call()
+
+    g = reverse(g)
+    x =reverse(x)
+    y = reverse(y)
+
+    (CL, CR) = balance
+    print("Encrypted balance stored in Smart Contract\n", (CL, CR))
+    CL = reverse(CL)
+    CR = reverse(CR)
+    b = 0
+    for i in range(MAX+1):
+        if ((CR**x * g**i) == CL):
+            b = i
+            break
+
+    print("Raw balance ", b)
+
+    response = {'b':b, 'CL': CL, 'CR': CR}
+    return response
+
 @app.route('/getElBalance', methods=['POST'])
 def getElBalance():
-    global y1, y0
-    if 'accId' in request.get_json():
-        accId = request.get_json()['accId']
-    accId = int(accId)
-    print("y0 ", y0)
-    print("y1 ", y1)
 
-    if accId == 1:
-        y = y1
-    else:
-        y = y0
-
-    print("check pubkey ", type(y))
-    result = contract_instance.functions.ElBalanceOf(y).call()
-    print(" =>>>>> result of balance ", result)
+    if 'y' in request.get_json():
+        y = request.get_json()['y']
+    if 'x' in request.get_json():
+        x = request.get_json()['x']
+    if 'g' in request.get_json():
+        g = request.get_json()['g']
+    
+    b = readElBalance(g, x, y)
     
     message = {
         'status': 200,
         'message': 'OK',
-        'data': result
+        'data': b['b']
     }
+
     resp = jsonify(message)
     resp.status_code = 200
     return resp
@@ -234,8 +253,8 @@ def convertProofToJSON(p, c):
         }
     return res
 
-@app.route('/confTransfer', methods=['POST'])
-def confTransfer():
+@app.route('/genConfProof', methods=['POST'])
+def genConfProof():
     if 'y_sender' in request.get_json():
         yS = request.get_json()['y_sender']
     if 'x_sender' in request.get_json():
@@ -249,18 +268,28 @@ def confTransfer():
     if 'b_after' in request.get_json():
         b_after = request.get_json()['b_after']
     
-    balance = contract_instance.functions.ElBalanceOf(yS).call()
+    res = readElBalance(g, sk, yS)
 
-    (CL, CR) = balance
+    amt = int(amt)
 
-    CL = reverse(CL)
-    CR = reverse(CR)
+    b = res['b']
+    if (b < amt):
+        err = 'Insufficient balance'
+        resp = {'code': -1, 'err':err}
+        return resp
+
+    CL = res['CL']
+    CR = res['CR']
+    # balance = contract_instance.functions.ElBalanceOf(yS).call()
+
+    # (CL, CR) = balance
+
+    # CL = reverse(CL)
+    # CR = reverse(CR)
     g = reverse(g)
     sk =reverse(sk)
     yS = reverse(yS)
     yR = reverse(yR)
-
-    amt = int(amt)
     b_after = int(b_after)
     p = Prover()
     p1, c1 = p.prove(amt)
@@ -279,7 +308,7 @@ def confTransfer():
     for key in input.keys():
         input[key] = convert(input[key])
     # print("sigm ", sigmaProof)
-    result = {'rangeProofForAmt':rangeProofForAmt, 'rangeProofForRemainBalance':rangeProofForRemainBalance, 'sigmaProtocol': sigmaProof, 'input': input}
+    result = {'code':200, 'rangeProofForAmt':rangeProofForAmt, 'rangeProofForRemainBalance':rangeProofForRemainBalance, 'sigmaProtocol': sigmaProof, 'input': input}
     # print("check type ", type(json.dumps(rangeProofForAmt)))
     # result = contract_instance.functions.confTransfer(json.dumps(rangeProofForAmt), json.dumps(rangeProofForRemainBalance)).call()
     # print(" =>>>>> result of balance ", result)

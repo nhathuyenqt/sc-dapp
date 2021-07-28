@@ -61,6 +61,8 @@ def handle_event1(event):
     print(id, " VERIFIED ", result)
     tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
     signed_tx = w3.eth.account.signTransaction(tx, key)
+    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    print(hash.hex())
 
 def handle_range_proof(proof):
     c = proof["challenge"]
@@ -86,14 +88,18 @@ def handle_sigma_proof(proof, info):
         info[i] = reverse(info[i])
 
     return sigmaVerify(proof, info)
-    
 
-def handle_event(event):
-    print("Load Event")
+    
+def homo_computation():
+    return 0
+
+def handle_event_transfer(event):
+    
     data = Web3.toJSON(event)
     # print("Event ", event)
     data = json.loads(data)
     data = data['args']
+    id = data['id']
     proofForAmt = data['rangeproof1']
     proofForAmt = json.loads(proofForAmt)
     # proof1 = json.loads(proof1)
@@ -110,31 +116,39 @@ def handle_event(event):
     info = json.loads(info)
 
     print("\n** Prove the sending amount is positive ** ")
-    result = handle_range_proof(proofForAmt)
+    ok = handle_range_proof(proofForAmt)
+    result = ok
     if (result):
         print(" =>  VERIFIED ")
     else:
         print(" =>  INVALID ")
-        return 0
+        # return 0
     print("\n** Prove the remain balance is positive **")
-    result = handle_range_proof(proofForRemain)
+    ok = handle_range_proof(proofForRemain)
+    result = result & ok
     if (result):
         print(" =>  VERIFIED ")
     else:
         print(" =>  INVALID ")
-        return 0
+        # return 0
     print("\n** Sigma Protocol ** \n")
     result = handle_sigma_proof(sigmaProof, info)
+    result = result & ok
     if (result):
         print("Sigma Proof is VALID ")
+        
     else:
         print("Sigma Proof is NOT valid ")
-        return 0
+        # return 0
+    tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+    signed_tx = w3.eth.account.signTransaction(tx, key)
+    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    print(hash.hex())
 
 async def log_loop(event_filter, poll_interval):
     while True:
         for PairCreated in event_filter.get_new_entries():
-            handle_event(PairCreated)
+            handle_event_transfer(PairCreated)
     
         await asyncio.sleep(poll_interval)
 

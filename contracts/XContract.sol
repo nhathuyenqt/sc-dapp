@@ -29,7 +29,7 @@ contract XContract{
     struct Request{
         address sender;
         uint id;
-        string proof;
+        string[4] proof;
         State state;        
     }
 
@@ -37,7 +37,7 @@ contract XContract{
     event UpdateState(address add, uint balance);
     event NewRequest(uint id, string proof);
     event TestMsg(string newMsg);
-    event NewConfTransfer(string rangeproof1, string rangeproof2, string sigmaProof, string input);
+    event NewConfTransfer(uint id, string rangeproof1, string rangeproof2, string sigmaProof, string input);
     
     modifier onlyAS() {
       require(msg.sender == association);
@@ -88,31 +88,18 @@ contract XContract{
         emit TestMsg(symbol);
     }
 
-    function privateTransfer(string memory y) public returns (uint){
+    function confTransfer(string memory proofForAmt, string memory proofForRemainBalance, string memory sigmaProof, string memory input) public {
         
         requestList.push(Request({
             sender : msg.sender,
             id : numberOfRequest,
-            proof : y,
+            proof : [proofForAmt, proofForRemainBalance, sigmaProof, input],
             state : State.Processing
         }));
-        emit NewRequest(numberOfRequest, y);
-        numberOfRequest += 1;
-
-        return (numberOfRequest - 1); //id of his request
-    }
-    function confTransfer(string memory proofForAmt, string memory proofForRemainBalance, string memory sigmaProof, string memory input) public {
-        
-        // requestList.push(Request({
-        //     sender : msg.sender,
-        //     id : numberOfRequest,
-        //     proof : y,
-        //     state : State.Processing
-        // }));
         // emit NewRequest(numberOfRequest, y);
         console.log("Test Event'");
-        emit NewConfTransfer(proofForAmt, proofForRemainBalance, sigmaProof, input);
-        // numberOfRequest += 1;
+        emit NewConfTransfer(numberOfRequest, proofForAmt, proofForRemainBalance, sigmaProof, input);
+        numberOfRequest += 1;
 
         // return (numberOfRequest - 1); //id of his request
     }

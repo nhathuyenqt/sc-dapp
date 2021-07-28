@@ -33,7 +33,7 @@ function Home() {
   const [pubkeyList, setPubkeyList] = useState({});
   const [privkeyList, setPrivkeyList] = useState({});
   const [gList, setG] = useState({});
-
+  const [noti, setNoti] = useState("")
 
   useEffect(() => {
     fetch('/time').then(res => res.json()).then(data => {
@@ -213,7 +213,9 @@ function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          accId : accId
+          'x' : privkeyList[accId],
+          'y' : pubkeyList[accId],
+          'g' : gList[accId],
         }),
       })
       setLoading(false)
@@ -258,14 +260,14 @@ function Home() {
   async function genConfProof() {
     setLoading(true)
     console.log("g ", gList[0])
-      const response = await fetch("/confTransfer", {
+      const response = await fetch("/genConfProof", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           'y_sender': pubkeyList[0],
           'y_recipient': pubkeyList[1],
           'g_sender': gList[0],
-          'amt':3,
+          'amt':amount,
           'b_after':197,
           'x_sender': privkeyList[0]
         }),
@@ -273,16 +275,13 @@ function Home() {
       setLoading(false)
       let result
       await response.json().then((message) => {
-        // result = JSON.stringify(message["data"]);
-        result = message;
-        console.log("Res ", message )
+        result = message
       });
       return result
-      
-
-    
   }
+
   async function confTransfer() {
+    setNoti("")
     if (typeof window.ethereum !== "undefined") {
       await requestAccount();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -296,9 +295,13 @@ function Home() {
       //   console.log('huzzah, I\'m done!');
       // });
       let messageProof = await genConfProof();
-      // console.log("Check type of Proof 1 : ", messageProof);
-      // console.log("hello 2");
-      // console.log("messageProof ",messageProof['rangeProofForAmt'])
+      console.log(messageProof);
+      if (messageProof['code'] != 200){
+        const err = messageProof['err']
+        setNoti(err);
+        return 0
+      }
+  
       const pr1 = JSON.stringify(messageProof['rangeProofForAmt'])
       const pr2 = JSON.stringify(messageProof['rangeProofForRemainBalance'])
       const pr3 = JSON.stringify(messageProof['sigmaProtocol'])
@@ -307,7 +310,7 @@ function Home() {
       // console.log(msg2)
       // // msg2 =  "hello"ßßßßßßßßß
       const transaction = await contract.confTransfer(pr1, pr2, pr3, data);
-      // console.log("transaction", transaction);
+      console.log("transaction", transaction);
 
       
     }
@@ -409,6 +412,7 @@ function Home() {
 
             <CardContent className = {classes.cardContent}>
               <Typography gutterBottom variant = "h5"> Balance </Typography>
+              <Typography textAlign='left'> {noti} </Typography>
               {loading && (
                     <CircularProgress size={24} className={classes.buttonProgress} />
                 )}
