@@ -7,8 +7,8 @@ import {useState, useEffect} from 'react'
 import {ethers} from 'ethers'
 import xtype from 'xtypejs'
 import text  from './../contract_address.json';
-
-
+import { auth } from '../helper/Firebase';
+import { useHistory } from 'react-router-dom';
 import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
 import { ContactSupportOutlined } from '@material-ui/icons';
 
@@ -18,6 +18,13 @@ const contractAddress = text['contract_address']
 var loading = false;
 
 function Home() {
+  // const history = useHistory();
+
+  // useEffect(() => {
+  //   auth.onAuthStateChanged(user => {
+  //       if (!user) history.push('/login');
+  //   })
+  // })
 
   const classes = useStyles()
 
@@ -35,6 +42,8 @@ function Home() {
   const [gList, setG] = useState({});
   const [noti, setNoti] = useState("")
 
+
+  
   useEffect(() => {
     fetch('/time').then(res => res.json()).then(data => {
       setCurrentTime(data.time);
@@ -50,6 +59,7 @@ function Home() {
 
     })
   }
+
   // async function updateStateEventListener(callback) {
   //   await requestAccount()
   //   const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -309,14 +319,12 @@ function Home() {
       // let msg2 = JSON.stringify(messageProof)
       // console.log(msg2)
       // // msg2 =  "hello"ßßßßßßßßß
-      const transaction = await contract.confTransfer(pr1, pr2, pr3, data);
-      console.log("transaction", transaction);
+      // const transaction = await contract.confTransfer(pr1, pr2, pr3, data);
+      // console.log("transaction", transaction);
 
       
     }
   }
-
-
   
   async function sendCoins(){
     var messageProof
@@ -357,8 +365,8 @@ function Home() {
 
   return (
     <div className='home'>
-      <h1>Home</h1>
-      <Typography variant = "h4"> Nhat Huyen's Internship </Typography>
+      <h1 align='center'>Home</h1>
+      <Typography align='center' variant = "h4"> Nhat Huyen's Internship </Typography>
       <p>The current time is {currentTime}.</p>
       <Container maxWidth = "sm" className = {classes.cardGrid}> 
         <Grid container spacing ={4}>
@@ -447,6 +455,7 @@ function Home() {
           </Grid>
         </Grid>
       </Container>
+ 
       
     </div>
   );

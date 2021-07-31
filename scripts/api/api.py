@@ -312,6 +312,15 @@ def genConfProof():
     # print("check type ", type(json.dumps(rangeProofForAmt)))
     # result = contract_instance.functions.confTransfer(json.dumps(rangeProofForAmt), json.dumps(rangeProofForRemainBalance)).call()
     # print(" =>>>>> result of balance ", result)
- 
+    pr1  = json.dumps(rangeProofForAmt)
+    pr2 = json.dumps(rangeProofForRemainBalance)
+    pr3 = json.dumps(sigmaProof)
+    input = json.dumps(input)
+    gas = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).estimateGas()
+    print("gas ", gas)
+    tx = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address0), 'gas': gas})
+    signed_tx = w3.eth.account.signTransaction(tx, key0)
+    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+
     return result
 

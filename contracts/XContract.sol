@@ -29,7 +29,7 @@ contract XContract{
     struct Request{
         address sender;
         uint id;
-        string[4] proof;
+        // string[4] proof;
         State state;        
     }
 
@@ -93,9 +93,10 @@ contract XContract{
         requestList.push(Request({
             sender : msg.sender,
             id : numberOfRequest,
-            proof : [proofForAmt, proofForRemainBalance, sigmaProof, input],
+            
             state : State.Processing
         }));
+        //// proof : [proofForAmt, proofForRemainBalance, sigmaProof, input],
         // emit NewRequest(numberOfRequest, y);
         console.log("Test Event'");
         emit NewConfTransfer(numberOfRequest, proofForAmt, proofForRemainBalance, sigmaProof, input);
