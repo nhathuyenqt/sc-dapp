@@ -1,5 +1,5 @@
 import React from 'react';
-import {useState, useEffect} from 'react'
+import {useState} from 'react'
 import '@react-pdf-viewer/core/lib/styles/index.css'
 import '@react-pdf-viewer/default-layout/lib/styles/index.css'
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
@@ -10,7 +10,7 @@ function Reports() {
 
   const [defaultPdfFile] = useState(pdfFile)
   const [numPages, setNumPages] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
+
 
   function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages);

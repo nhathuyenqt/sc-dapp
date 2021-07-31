@@ -11,22 +11,29 @@ import './Login.css';
 
 function Login(props) {
     
-    let errorsObj = { name: '', password: '' };
+    const [errorsObj, setErrorObj]= useState('');
     const [errors, setErrors] = useState(errorsObj);
-
     const [infoUser, setInfoUser] = useState({email:"huyen12@gmail.com", address:"", password:"123456"})
-
     const dispatch = useDispatch();
     
     const {login} = useAuth()
     let history = useHistory()
+
     async function handleLogin() {
-        // setError("")
-        try {
-            await login(infoUser.email, infoUser.password)
-            history.push("/")
-        } catch {
-        // setError("Failed to log out")
+        if (infoUser.email === '') {
+            setErrorObj('Email is Required');
+        }else{
+            if (infoUser.password === '') {
+                setErrorObj('Password is Required');
+            }else{
+                try {
+                    await login(infoUser.email, infoUser.password)
+                    history.push("/")
+                } catch {
+                    setErrorObj("Failed to log out");
+                }
+            }
+
         }
     }
     

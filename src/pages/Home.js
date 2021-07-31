@@ -24,8 +24,8 @@ function Home(props) {
   //   })
   // })
 
-  const { currentUser } = useAuth()
-
+  const { currentUser, currentAddress } = useAuth()
+  console.log('home ', currentAddress)
   const classes = useStyles()
 
   const [greeting, setGreetingValue] = useState('')
@@ -377,22 +377,20 @@ function Home(props) {
                 </Dimmer> */}
                 
               
-            
-                <Typography textAlign='left'> {userAccount} </Typography>
-                <Typography textAlign='left'> {greeting}</Typography>
+                <Typography gutterBottom variant = "subtitle1"> {currentAddress} </Typography>
                 {/* <input 
                   onChange={e => setGreetingValue(e.target.value)} 
                   placeholder="Set greeting"
                   value = {greeting}
                 /> */}
-                <TextField
+               <TextField
                   onChange={e => setAccId(e.target.value)} 
                   placeholder="ACC ID"
                   variant='outlined'
                   fullWidth
                   color ="secondary"
                   className={classes.field}
-                />
+                /> 
               </CardContent>
               <CardActions>
                

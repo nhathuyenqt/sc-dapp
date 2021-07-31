@@ -20,17 +20,6 @@ function App(props) {
   }, []);
 
 
-  // if (props.isAuthenticated) {
-  // if (currentUser){
-  //     routes = (
-  //         <Switch>
-  //             {/* <Route exact path="/dashboard" component={() => <Dashboard  authorized={authorized}/>} /> */}
-  //             <Route path='/dashboard' component={Dashboard} />
-  //             {/* <Redirect to='/' /> */}
-  //         </Switch>
-  //     );
-  // }
-
   return (
           <Router>
             <AuthProvider>

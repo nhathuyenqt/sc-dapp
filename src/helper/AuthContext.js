@@ -44,14 +44,17 @@ export function AuthProvider({ children }) {
         const docRef = db.collection("users").doc(user.uid);
         docRef.get().then((doc) => {
         if (doc.exists) {
-            const addr = doc.data().address;             
-            setCurrentAddress(addr)
+            const addr = doc.data().address;  
+            console.log(addr)           
+            setCurrentAddress(addr);
           }else {
             // doc.data() will be undefined in this case
             console.log("No such document!");
+            setCurrentAddress('')
           }
           }).catch((error) => {
             console.log("Error getting document:", error);
+            setCurrentAddress('')
             });
       }else{
         setCurrentAddress(null);
@@ -59,11 +62,12 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    return unsubscribe
-  }, [])
+      return unsubscribe
+    }, [])
 
   const value = {
     currentUser,
+    currentAddress,
     login,
     // signup,
     logout,

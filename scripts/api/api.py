@@ -8,7 +8,6 @@ from SigmaProtocol import *
 import json
 from ElGama import *
 import asyncio
-
 MAX = 20000
 
 addr = json.load(open('./../../src/contract_address.json'))
@@ -45,21 +44,7 @@ initB = 200
 app = Flask(__name__)
 
 
-def reverse(a):
-    if (type(a) ==  list):
-        for i in range(len(a)):
-            a[i] = reverse(a[i])
-        return a
-    else:
-        return group1.deserialize(a.encode("utf-8"))
 
-def convert(a):
-    if (type(a) ==  list):
-        for i in range(len(a)):
-            a[i] = convert(a[i])
-        return a
-    else:
-        return group1.serialize(a).decode("utf-8")
 
 @app.route('/time')
 def get_current_time():
@@ -77,7 +62,7 @@ def genKey():
     print("acc ID ", accId)
 
     x = group1.random(ZR)
-    g = group1.random(G)
+    
     y = g**x
 
     

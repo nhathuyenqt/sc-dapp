@@ -1,7 +1,7 @@
 # from charm.toolbox.integergroup import IntegerGroup
 # from charm.toolbox.pairinggroup import PairingGroup,ZR,G1,G2,GT,pair
 from charm.toolbox.ecgroup import ECGroup,ZR,G
-from charm.toolbox.eccurve import prime192v1, secp256k1
+from charm.toolbox.eccurve import  secp256k1
 import numpy as np
 import json
 from web3 import Web3, HTTPProvider
@@ -16,10 +16,25 @@ n = 128
 global group1
 # group1 = PairingGroup('SS512')
 group1 = ECGroup(secp256k1)
+g_str = b'1:A5ibNGTZSd+VxLgQSz21STURATOy8izFV1fB4y4O3khQ'
+g = group1.deserialize(g_str)
 
-# rand = group2.random(ZR)
-# print("rand ", rand)
+def reverse(a):
+    if (type(a) ==  list):
+        for i in range(len(a)):
+            a[i] = reverse(a[i])
+        return a
+    else:
+        return group1.deserialize(a.encode("utf-8"))
 
+def convert(a):
+    if (type(a) ==  list):
+        for i in range(len(a)):
+            a[i] = convert(a[i])
+        return a
+    else:
+        return group1.serialize(a).decode("utf-8")
+        
 def subtract(vec1, vec2):
 
     res = [vec1[i] - vec2[i] for i in range(n)]

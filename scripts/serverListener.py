@@ -86,11 +86,34 @@ def handle_sigma_proof(proof, info):
         proof[i] = reverse(proof[i])
     for i in info.keys():
         info[i] = reverse(info[i])
-
+    
     return sigmaVerify(proof, info)
 
     
-def homo_computation():
+def homo_computation(info):
+    print("info " , info)
+    y = info['y']
+    yr = info['yr']
+    C = info['C']
+    Cr = info['Cr']
+    D = info['D']
+    # y = reverse(y)
+
+    (CL, CR) = contract_instance.functions.ElBalanceOf(convert(y)).call()
+    (CLr, CRr) = contract_instance.functions.ElBalanceOf(convert(yr)).call()
+    
+    CL = reverse(CL)
+    CR = reverse(CR)
+    CLr = reverse(CLr)
+    CRr = reverse(CRr)
+
+    CL_s_new = CL/C
+    CR_s_new = CR/D
+    print(CL_s_new)
+    print(type(CL_s_new))
+    CL_r_new = CLr*C
+    CR_r_new = CRr*D
+
     return 0
 
 def handle_event_transfer(event):
@@ -117,30 +140,16 @@ def handle_event_transfer(event):
 
     print("\n** Prove the sending amount is positive ** ")
     ok = handle_range_proof(proofForAmt)
-    result = ok
-    if (result):
-        print(" =>  VERIFIED ")
-    else:
-        print(" =>  INVALID ")
-        # return 0
-    print("\n** Prove the remain balance is positive **")
-    ok = handle_range_proof(proofForRemain)
-    result = result & ok
-    if (result):
-        print(" =>  VERIFIED ")
-    else:
-        print(" =>  INVALID ")
-        # return 0
-    print("\n** Sigma Protocol ** \n")
-    result = handle_sigma_proof(sigmaProof, info)
-    result = result & ok
-    if (result):
-        print("Sigma Proof is VALID ")
-        
-    else:
-        print("Sigma Proof is NOT valid ")
-        # return 0
-    tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+    if (ok):
+        # print("\n** Prove the remain balance is positive **")
+        ok = handle_range_proof(proofForRemain)
+        if (ok):
+            print("\n** Sigma Protocol ** \n")
+            ok = handle_sigma_proof(sigmaProof, info)
+            if (ok):
+                
+                result = homo_computation(info)
+    tx = contract_instance.functions.confirmProof(id, ok).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
     signed_tx = w3.eth.account.signTransaction(tx, key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print(hash.hex())
