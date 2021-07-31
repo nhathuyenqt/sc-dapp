@@ -3,53 +3,12 @@ import './App.css';
 import Header from './pages/Header';
 import Navbar from './components/Navbar';
 import { BrowserRouter as Router, Switch, Route, Redirect, withRouter } from 'react-router-dom';
-import Home from './pages/Home';
-import History from './pages/History';
-import Reports from './pages/Reports';
-import Posts from './pages/Posts';
-import GroupList from './pages/AdminPage';
 import { AuthProvider, useAuth } from "./helper/AuthContext"
 import PrivateRoute from "./components/PrivateRoute"
-// import Products from './pages/Products';
 import Login from './pages/Login';
-import { checkAutoLogin } from './AuthFunction';
-
 import Main from './pages/Main';
-import { connect, useDispatch } from 'react-redux';
-import { FirebaseDatabaseProvider } from "@react-firebase/database";
 import { useState, useEffect, Suspense} from 'react';
 import './pages/Login.css';
-import {useHistory} from "react-router-dom"
-import { isAuthenticated } from './pages/AuthSelector';
-
-// function App() {
-//   let history = useHistory()
-
-//   const [authorized, setAuthorized] = useState(false);
-//   const [user, setUser] = useState({name:"", address:""});
-//   const [error, setError] = useState("");
-
-//   const Login = details =>{
-//     console.log(details);
-//     console.log((details.name == 'admin' ));
-//     if (details.name == 'admin'){
-//       setAuthorized(true);
-//       history.push("/dashboard");
-//     }else{
-      
-//       setError("Details do not match!");
-//       setAuthorized(false);
-      
-//     }
-//   }
-
-
-//   const Logout = () =>{
-//     userHasAuthenticated(false);
-//     history.push("/login");
-//   }
-
-
 
 
 function App(props) {
@@ -60,14 +19,6 @@ function App(props) {
       // checkAutoLogin(dispatch, props.history);
   }, []);
 
-  
-
-  let routes = (
-      <Switch>
-          {/* <Route exact path="/" component={() => <LoginForm  Login ={Login} error={error}/>} /> */}
-          <Route exact  path='/login' component={Login} />
-      </Switch>
-  );
 
   // if (props.isAuthenticated) {
   // if (currentUser){
@@ -81,30 +32,11 @@ function App(props) {
   // }
 
   return (
-      // <div>
-      //     {/* <Header /> */}
-      //     <div className='container px-3 mx-auto'>
-      //         <Suspense fallback={<div>Loading...</div>}>
-      //             {routes}
-      //         </Suspense>
-      //     </div>
-      // </div>
-
           <Router>
-            {/* <Navbar /> */}
             <AuthProvider>
               <Switch>
                 <Route path='/login' exact component={Login} /> 
                 <PrivateRoute exact path="/" component={Main} />
-                {/*<Route path='/home' exact component={Home} />
-                <Route path='/posts' component={Posts} />
-                <Route path='/history' component={History} />
-                <Route path='/reports' component={Reports} />
-                <Route path='/admin' component={GroupList} />  */}
-                
-
-                {/* <Redirect to='/login' from='*' /> */}
-                {/* <Route path='/products' component={Products} /> */}
               </Switch> 
             </AuthProvider>
           </Router>

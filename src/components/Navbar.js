@@ -11,14 +11,14 @@ import { makeStyles } from "@material-ui/core";
 import { useAuth } from "../helper/AuthContext"
 
 const style = makeStyles({
-  titleItemRight: {
+  button: {
     color: "white",
-    backgroundColor: "blue",
-    top: "50%",
-    height: 30,
-    float: "right",
-    position: "relative",
-    transform: "translateY(-50%)"
+    backgroundColor: '#060b26',
+    // top: "50%",
+    // height: 30,
+    // float: "right",
+    // position: "relative",
+    // transform: "translateY(-50%)"
   }
 });
 
@@ -46,18 +46,18 @@ function Navbar() {
   return (
     <>
       <IconContext.Provider value={{ color: '#666' }}>
-        <div>
+        <div style={{display: 'flex', "align-items":'center', backgroundColor: '#060b26'}}>
           <div className='navbar'>
-           {/* <h1 align='center'>{title}</h1> */}
+           
             <Link to='#' className='menu-bars'>
               <FaIcons.FaBars onClick={showSidebar}  />
               
             </Link>
-            
+
           </div>
-          <div style={{float: 'right'}}>
-              <Button size ="small" color='primary' onClick={handleLogout} >LOG OUT</Button>
-          </div>
+          
+          <Button width= '200px' size ="small" color='primary' className={classes.button} onClick={handleLogout} >LOG OUT</Button>
+
         </div>
         <nav className={sidebar ? 'nav-menu active' : 'nav-menu'}>
           <ul className='nav-menu-items' onClick={showSidebar}>

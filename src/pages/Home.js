@@ -1,23 +1,21 @@
 import React from 'react';
 
-import {Typography, Button, AppBar, Spinner, Card,  CircularProgress, Container, CardActions, Grid, CardContent, CardMedia, TextField} from '@material-ui/core'
+import {Typography, Button, AppBar, Spinner, Card,  CircularProgress, Container, CardActions, Grid, CardContent, TextField} from '@material-ui/core'
 
 import  useStyles  from './Styles.js';
 import {useState, useEffect} from 'react'
 import {ethers} from 'ethers'
 import xtype from 'xtypejs'
 import text  from './../contract_address.json';
-import { auth } from '../helper/Firebase';
+import { useAuth } from "../helper/AuthContext"
 import { useHistory } from 'react-router-dom';
 import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
-import { ContactSupportOutlined } from '@material-ui/icons';
-
 
 // const contractAddress = '0x2c934A1a4F5fC1E96Cf55FDbCbFc4614580B730a' // rinkeby
 const contractAddress = text['contract_address']
 var loading = false;
 
-function Home() {
+function Home(props) {
   // const history = useHistory();
 
   // useEffect(() => {
@@ -25,6 +23,8 @@ function Home() {
   //       if (!user) history.push('/login');
   //   })
   // })
+
+  const { currentUser } = useAuth()
 
   const classes = useStyles()
 
@@ -42,13 +42,6 @@ function Home() {
   const [gList, setG] = useState({});
   const [noti, setNoti] = useState("")
 
-
-  
-  useEffect(() => {
-    fetch('/time').then(res => res.json()).then(data => {
-      setCurrentTime(data.time);
-    });
-  }, []);
 
   // useEffect(() => {
   //   requestAccount()
@@ -367,7 +360,6 @@ function Home() {
     <div className='home'>
       <h1 align='center'>Home</h1>
       <Typography align='center' variant = "h4"> Nhat Huyen's Internship </Typography>
-      <p>The current time is {currentTime}.</p>
       <Container maxWidth = "sm" className = {classes.cardGrid}> 
         <Grid container spacing ={4}>
           <Grid item> 
@@ -397,7 +389,7 @@ function Home() {
                   onChange={e => setAccId(e.target.value)} 
                   placeholder="ACC ID"
                   variant='outlined'
-                  fullWidthadf
+                  fullWidth
                   color ="secondary"
                   className={classes.field}
                 />

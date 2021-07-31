@@ -6,7 +6,7 @@ import { connect, useDispatch } from 'react-redux';
 import { useAuth } from "../helper/AuthContext"
 import { useState } from 'react';
 import {useHistory} from 'react-router-dom';
-import {Typography, Button, AppBar, Spinner, Card,  CircularProgress, Container, CardActions, Grid, CardContent, CardMedia, TextField} from '@material-ui/core'
+import {Typography, Button} from '@material-ui/core'
 import './Login.css';
 
 function Login(props) {
