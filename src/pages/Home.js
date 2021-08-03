@@ -18,11 +18,7 @@ var loading = false;
 function Home(props) {
   // const history = useHistory();
 
-  // useEffect(() => {
-  //   auth.onAuthStateChanged(user => {
-  //       if (!user) history.push('/login');
-  //   })
-  // })
+  
 
   const { currentUser, currentAddress } = useAuth()
   console.log('home ', currentAddress)
@@ -78,7 +74,34 @@ function Home(props) {
   //   });
   // }
   
+  async function matchPubkey(){
+    if (typeof window.ethereum !== 'undefined'){
+      await requestAccount()
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, XContract.abi, signer)
+      const matchingPubkey = await contract.fetchPubkey.call();
+      console.log(matchingPubkey)
+    }
+  }
+  useEffect(() => {
+    if (currentAddress){
+      matchPubkey()
+      
+    }
+  })
 
+
+
+
+  // const generateQrCode = async() => {
+  //   try{
+  //     const response = await QRCode.toDataURL('')
+  //   }catch(error){
+  //     console.log(error)
+  //   }
+  // }
+  
   async function setGreeting(){
     if (!greeting) return
     if (typeof window.ethereum !== 'undefined'){
@@ -313,7 +336,7 @@ function Home(props) {
       // console.log(msg2)
       // // msg2 =  "hello"ßßßßßßßßß
       // const transaction = await contract.confTransfer(pr1, pr2, pr3, data);
-      // console.log("transaction", transaction);
+      // 
 
       
     }

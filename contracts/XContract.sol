@@ -17,6 +17,7 @@ contract XContract{
 
     mapping(address => uint) balance;
     mapping(address => bool) validAddress;
+    mapping(address => string) validPubkey;
     mapping(string => ElBalance) public acc;
     
     address public association;
@@ -105,7 +106,11 @@ contract XContract{
         // return (numberOfRequest - 1); //id of his request
     }
 
-
+    function fetchPubkey() public returns (string memory){
+        require(validAddress[msg.sender] == true);
+                         
+        return validPubkey[msg.sender];
+    }
     // function transfer(string) external {
     //     require(balances[msg.sender] >= amount, 'Not enough tokens');
     //     balances[msg.sender] -= amount;
@@ -118,8 +123,13 @@ contract XContract{
         require(balance[msg.sender] >= amount, 'Not enough tokens');
         balance[msg.sender] -= amount;
         balance[to] += amount;
-        emit UpdateState(msg.sender, balance[msg.sender]);
+         emit UpdateState(msg.sender, balance[msg.sender]);
         // emit UpdateState(to, balances[to]);
+    }
+
+    function updateBalance(string memory y, string memory C1, string memory C2, string memory yr, string memory C3, string memory C4) public {
+        acc[y] = ElBalance({CL : C1, CR : C2});
+        acc[yr] = ElBalance({CL : C3, CR : C4});
     }
 
     function confirmProof(uint id, bool res) public{

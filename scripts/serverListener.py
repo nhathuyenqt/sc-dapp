@@ -98,9 +98,10 @@ def homo_computation(info):
     Cr = info['Cr']
     D = info['D']
     # y = reverse(y)
-
-    (CL, CR) = contract_instance.functions.ElBalanceOf(convert(y)).call()
-    (CLr, CRr) = contract_instance.functions.ElBalanceOf(convert(yr)).call()
+    y_str = convert(y)
+    yr_str = convert(yr)
+    (CL, CR) = contract_instance.functions.ElBalanceOf(y_str).call()
+    (CLr, CRr) = contract_instance.functions.ElBalanceOf(yr_str).call()
     
     CL = reverse(CL)
     CR = reverse(CR)
@@ -109,12 +110,20 @@ def homo_computation(info):
 
     CL_s_new = CL/C
     CR_s_new = CR/D
-    print(CL_s_new)
-    print(type(CL_s_new))
-    CL_r_new = CLr*C
-    CR_r_new = CRr*D
 
-    return 0
+    CL_r_new = CLr*Cr
+    CR_r_new = CRr*D
+    
+    CL1 = convert(CL_s_new)
+    CR1 = convert(CR_s_new)
+
+    CL2 = convert(CL_r_new)
+    CR2 = convert(CR_r_new)
+
+    tx = contract_instance.functions.updateBalance(y_str, CL1, CR1, yr_str, CL2, CR2).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+    signed_tx = w3.eth.account.signTransaction(tx, key)
+    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    print(hash.hex())
 
 def handle_event_transfer(event):
     
@@ -147,8 +156,10 @@ def handle_event_transfer(event):
             print("\n** Sigma Protocol ** \n")
             ok = handle_sigma_proof(sigmaProof, info)
             if (ok):
-                
-                result = homo_computation(info)
+                return homo_computation(info)
+
+    print("Invalid")
+
     tx = contract_instance.functions.confirmProof(id, ok).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
     signed_tx = w3.eth.account.signTransaction(tx, key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)

@@ -52,19 +52,11 @@ def get_current_time():
     
     return {'time': time.time()}
 
-@app.route('/genKey', methods=['POST'])
+@app.route('/genKey', methods=['GET'])
 def genKey():
 
-    global y1, y0, initB
-    if 'accId' in request.get_json():
-        accId = request.get_json()['accId']
-    accId = int(accId)
-    print("acc ID ", accId)
-
     x = group1.random(ZR)
-    
     y = g**x
-
     
     data = {
             'g': convert(g),
@@ -86,23 +78,11 @@ def genKey():
     CR = convert(CR)
     CL = g**initB*(y**r)
     CL = convert(CL)
-    if (accId == 1):
-        acc_address = acc_address1
-        key = key1
-        y1 = convert(y)
-    else:
-        acc_address = acc_address0
-        key = key0
-        y0 = convert(y)
 
-    print("y0 ", y0)
-    print("y1 ", y1)
-    print("g ", g)
-
-    tx = contract_instance.functions.initElBalance(data['y'], CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
-    signed_tx = w3.eth.account.signTransaction(tx, key)
-    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    print("Init EL Balance ", hash.hex())
+    # tx = contract_instance.functions.initElBalance(data['y'], CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+    # signed_tx = w3.eth.account.signTransaction(tx, key)
+    # hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    # print("Init EL Balance ", hash.hex())
     return resp
 
 def readElBalance(g, x, y):
