@@ -21,8 +21,8 @@ bytecode = deployedContract['bytecode']
 contract_instance = w3.eth.contract(abi=abi, address=contract_address)
 # acc_address = '0x492dc9d2201c07617C937a193048A7be320f677A'
 # key = '0xb4dde0d4f2685c127ae8e7644508ac7c70472bd9d38b4a464884ae158120e162'
-acc_address0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-key0 = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+acc_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
 key1 = "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
 acct = w3.eth.account.privateKeyToAccount(key1)
@@ -79,10 +79,10 @@ def genKey():
     CL = g**initB*(y**r)
     CL = convert(CL)
 
-    # tx = contract_instance.functions.initElBalance(data['y'], CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
-    # signed_tx = w3.eth.account.signTransaction(tx, key)
-    # hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    # print("Init EL Balance ", hash.hex())
+    tx = contract_instance.functions.initElBalance(data['y'], CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+    signed_tx = w3.eth.account.signTransaction(tx, key)
+    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    print("Init EL Balance ", hash.hex())
     return resp
 
 def readElBalance(g, x, y):
