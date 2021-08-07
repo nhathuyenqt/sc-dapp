@@ -8,6 +8,8 @@ from SigmaProtocol import *
 import json
 from ElGama import *
 import asyncio
+import os.path
+from os import path
 MAX = 20000
 
 addr = json.load(open('./../../src/contract_address.json'))
@@ -43,36 +45,27 @@ initB = 200
 
 app = Flask(__name__)
 
-
-
-
 @app.route('/time')
 def get_current_time():
     print(time.time())
     
     return {'time': time.time()}
 
-@app.route('/genKey', methods=['GET'])
-def genKey():
+def genKey(uid):
 
+    # if 'uid' in request.get_json():
+    #     uid = request.get_json()['uid']
     x = group1.random(ZR)
     y = g**x
-    
     data = {
-            'g': convert(g),
             'y': convert(y),
             'x' : convert(x)
         }
-    message = {
-        'status': 200,
-        'message': 'OK',
-        'data': data        
-    }
-    # print("=>>>>>>> public_key: " , type(secret_key['x']))
-    print(message)
-    resp = jsonify(message)
-    resp.status_code = 200
-    print("=>>>>>>> hello: " , type(resp))
+    file_name = 'key/' + uid + '.txt'
+    with open(file_name, 'w') as outfile:
+        json.dump(data, outfile)
+    outfile.close()
+  
     r = group1.random(ZR)
     CR = g**r
     CR = convert(CR)
@@ -83,22 +76,64 @@ def genKey():
     signed_tx = w3.eth.account.signTransaction(tx, key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print("Init EL Balance ", hash.hex())
+
+    message = {
+        'status': 200,
+        'message': 'OK',
+        'data': data,
+        'balance': {
+            'CL':CL,
+            'CR':CR,
+            'b':initB
+        }      
+    }
+    print(message)
+    resp = jsonify(message)
+    resp.status_code = 200  
     return resp
 
-def readElBalance(g, x, y):
+@app.route('/fetchKey', methods=['POST'])
+def fetchKey():
+    if 'uid' in request.get_json():
+        uid = request.get_json()['uid']
+    file_name = 'key/' + uid + '.txt'
+    print("\n\n?? Found key in file ", path.exists(file_name))
+    if path.exists(file_name):
+        f = open(file_name, 'r+')
+        data = json.load(f)
+        f.close()
+        x = data['x']
+        y = data['y']
+        print(data)
+        balance = readElBalance(x, y)
+        message = {
+            'status': 200,
+            'message': 'OK',
+            'data': data,
+            'balance': balance 
+        }
+        print(message)
+        resp = jsonify(message)
+        resp.status_code = 200
+        return resp
+    else:
+        return genKey(uid)
+
+
+
+def readElBalance(x, y):
     balance = contract_instance.functions.ElBalanceOf(y).call()
 
-    g = reverse(g)
     x =reverse(x)
     y = reverse(y)
 
     (CL, CR) = balance
     print("Encrypted balance stored in Smart Contract\n", (CL, CR))
-    CL = reverse(CL)
-    CR = reverse(CR)
+    CL_hex = reverse(CL)
+    CR_hex = reverse(CR)
     b = 0
     for i in range(MAX+1):
-        if ((CR**x * g**i) == CL):
+        if ((CR_hex**x * g**i) == CL_hex):
             b = i
             break
 
@@ -117,7 +152,7 @@ def getElBalance():
     if 'g' in request.get_json():
         g = request.get_json()['g']
     
-    b = readElBalance(g, x, y)
+    b = readElBalance(x, y)
     
     message = {
         'status': 200,
@@ -233,7 +268,7 @@ def genConfProof():
     if 'b_after' in request.get_json():
         b_after = request.get_json()['b_after']
     
-    res = readElBalance(g, sk, yS)
+    res = readElBalance(sk, yS)
 
     amt = int(amt)
 

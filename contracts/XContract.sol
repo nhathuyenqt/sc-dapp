@@ -9,16 +9,15 @@ contract XContract{
     string symbol;
     uint public totalSupply = 1000000;
     uint public initialSupply = 10000;
-
+    bytes private tempEmptyStringTest = bytes("");
     struct ElBalance {
         string CL;
         string CR;
     }
 
-    mapping(address => uint) balance;
-    mapping(address => bool) validAddress;
-    mapping(address => string) validPubkey;
-    mapping(string => ElBalance) public acc;
+    mapping(address => bool) private validAddress;
+    mapping(address => string) private validPubkey;
+    mapping(string => ElBalance) private encrytedBalance;
     
     address public association;
     Request[] requestList;
@@ -40,13 +39,12 @@ contract XContract{
     event TestMsg(string newMsg);
     event NewConfTransfer(uint id, string rangeproof1, string rangeproof2, string sigmaProof, string input);
     
-    modifier onlyAS() {
-      require(msg.sender == association);
+    modifier onlyAdmin() {
+      require(msg.sender == association, "You are not authorized.");
       _;
     }
 
     constructor(){
-        balance[msg.sender] = totalSupply;
         validAddress[msg.sender] = true;
         association = msg.sender;
         symbol = "000";
@@ -55,29 +53,37 @@ contract XContract{
         numberOfRequest = 0;
     }
 
-    function register(address newAcc)  public {
-        balance[newAcc] = initialSupply;
-        validAddress[newAcc] = true;
+    function authorizeNewUser(address[] memory newAcc) public onlyAdmin  {
+        
+        for(uint i=0; i<newAcc.length; i++){
+            validAddress[newAcc[i]] = true;
+            // console.log(newAcc[i]);
+        }
+        // console.log( newAcc);
         
     }
 
-    function registerKey(string calldata key) public {
-        if (validAddress[msg.sender] == false)
-            revert();
-        emit InitBalance(key);               
-    }
+    // function registerKey(string  memory key, string  memory b1, string memory b2) public {
+    //     if (validAddress[msg.sender] == false)
+    //         revert();
+    //     if ((validPubkey[msg.sender]) && (validPubkey[msg.sender] != key))
+    //         revert();
+    //     validPubkey[msg.sender] = key;
+    //     balanceOf[key] = ElBalance({CL:b1, CR:b2});
+    //     emit InitBalance(key);               
+    // }
 
     function initElBalance(string calldata y, string calldata cL, string calldata cR) public {
         console.log(msg.sender);
         console.log(association);
-        acc[y] = ElBalance({CL : cL, CR : cR});    
-        console.log("sender acc ", acc[y].CL, " and ", acc[y].CR);
+        encrytedBalance[y] = ElBalance({CL : cL, CR : cR});    
+        console.log("sender acc ", encrytedBalance[y].CL, " and ", encrytedBalance[y].CR);
                  
     }
 
-    function fundToAccount(uint amt, address user) public onlyAS{
-        balance[user] += amt;
-    }
+    // function fundToAccount(uint amt, address user) public onlyAS{
+    //     balance[user] += amt;
+    // }
 
     function greet() public view returns (string memory) {
         return symbol;
@@ -106,7 +112,7 @@ contract XContract{
         // return (numberOfRequest - 1); //id of his request
     }
 
-    function fetchPubkey() public returns (string memory){
+    function fetchPubkey() public view returns (string memory){
         require(validAddress[msg.sender] == true);
                          
         return validPubkey[msg.sender];
@@ -119,17 +125,17 @@ contract XContract{
     //     // emit UpdateState(to, balances[to]);
     // }
 
-    function transfer(address to, uint amount) external {
-        require(balance[msg.sender] >= amount, 'Not enough tokens');
-        balance[msg.sender] -= amount;
-        balance[to] += amount;
-         emit UpdateState(msg.sender, balance[msg.sender]);
-        // emit UpdateState(to, balances[to]);
-    }
+    // function transfer(address to, uint amount) external {
+    //     require(balance[msg.sender] >= amount, 'Not enough tokens');
+    //     balance[msg.sender] -= amount;
+    //     balance[to] += amount;
+    //      emit UpdateState(msg.sender, balance[msg.sender]);
+    //     // emit UpdateState(to, balances[to]);
+    // }
 
     function updateBalance(string memory y, string memory C1, string memory C2, string memory yr, string memory C3, string memory C4) public {
-        acc[y] = ElBalance({CL : C1, CR : C2});
-        acc[yr] = ElBalance({CL : C3, CR : C4});
+        encrytedBalance[y] = ElBalance({CL : C1, CR : C2});
+        encrytedBalance[yr] = ElBalance({CL : C3, CR : C4});
     }
 
     function confirmProof(uint id, bool res) public{
@@ -139,11 +145,11 @@ contract XContract{
             requestList[id].state = State.Cancel;
     }   
     
-    function balanceOf() external view returns (uint){
+    function balanceOf() external view returns (ElBalance memory){
         if (validAddress[msg.sender] == false)
             revert();
-        
-        return balance[msg.sender];
+        string storage y = validPubkey[msg.sender];
+        return encrytedBalance[y];
     }
 
     function ElBalanceOf(string memory y) external view returns (ElBalance memory){
@@ -152,6 +158,17 @@ contract XContract{
         //     revert();
         console.log("sender ", msg.sender);
         
-        return acc[y];
+        return encrytedBalance[y];
+    }
+
+    function checkAuthorized() external view returns (bool){
+        return validAddress[msg.sender];
+    }
+    function hasPubKey() external view returns (bool){
+        require(validAddress[msg.sender] == true, "You are not authorized.");
+        if (bytes(validPubkey[msg.sender]).length == 0)
+            return false;
+        else
+            return true;
     }
 }

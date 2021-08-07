@@ -38,7 +38,7 @@
       ]
     },
     "/Users/kzjouf/Desktop/project/scdapp/node_modules/hardhat/console.sol": {
-      "lastModificationDate": 1627982661069,
+      "lastModificationDate": 1628028439270,
       "contentHash": "cc4777addd464ea56fa35b1c45df0591",
       "sourceName": "hardhat/console.sol",
       "solcConfig": {
@@ -72,8 +72,8 @@
       ]
     },
     "/Users/kzjouf/Desktop/project/scdapp/contracts/XContract.sol": {
-      "lastModificationDate": 1627984201014,
-      "contentHash": "6c40aaf1ce47a3d00b1725eaa82df75a",
+      "lastModificationDate": 1628288980906,
+      "contentHash": "14bc58902dda34f4ff4d4cd5985a88b8",
       "sourceName": "contracts/XContract.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -105,40 +105,6 @@
       ],
       "artifacts": [
         "XContract"
-      ]
-    },
-    "/Users/kzjouf/Desktop/project/scdapp/contracts/Token.sol": {
-      "lastModificationDate": 1625732476780,
-      "contentHash": "c3e74a55ee691cb143a5df611c51777f",
-      "sourceName": "contracts/Token.sol",
-      "solcConfig": {
-        "version": "0.8.4",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "Token"
       ]
     }
   }

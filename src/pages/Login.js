@@ -13,7 +13,7 @@ function Login(props) {
     
     const [errorsObj, setErrorObj]= useState('');
     const [errors, setErrors] = useState(errorsObj);
-    const [infoUser, setInfoUser] = useState({email:"huyen12@gmail.com", address:"", password:"123456"})
+    const [infoUser, setInfoUser] = useState({email:"test1@gmail.com", address:"", password:"123456"})
     const dispatch = useDispatch();
     
     const {login} = useAuth()

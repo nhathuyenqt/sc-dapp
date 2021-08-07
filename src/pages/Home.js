@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {Typography, Button, AppBar, Spinner, Card,  CircularProgress, Container, CardActions, Grid, CardContent, TextField} from '@material-ui/core'
-
+import QRCode from "react-qr-code";
 import  useStyles  from './Styles.js';
 import {useState, useEffect} from 'react'
 import {ethers} from 'ethers'
@@ -20,7 +20,7 @@ function Home(props) {
 
   
 
-  const { currentUser, currentAddress } = useAuth()
+  const { currentUser, currentAddress, key } = useAuth()
   console.log('home ', currentAddress)
   const classes = useStyles()
 
@@ -84,12 +84,7 @@ function Home(props) {
       console.log(matchingPubkey)
     }
   }
-  useEffect(() => {
-    if (currentAddress){
-      matchPubkey()
-      
-    }
-  })
+
 
 
 
@@ -176,42 +171,6 @@ function Home(props) {
       // setLoading(false)
       // 
     }
-  }
-
-  async function genKey(){
-    console.log(accId)
-    const response = await fetch("/genKey", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accId: accId
-      }),
-    })
-
-    let result
-    await response.json().then((message) => {
-      result = message["data"];
-      console.log(result);
-      const y = result["y"];
-      const x = result["x"];
-      const g = result['g']
-      let sKey =  privkeyList
-      let pubkey = pubkeyList
-      let G = gList
-      const i = parseInt(accId, 10)
-      pubkey[i] = y;
-      sKey[i] = x
-      G[i] = g
-      setPubkeyList(pubkeyList);
-      setG(G);
-      setPrivkeyList(sKey);
-      console.log("pubkey1 ", pubkeyList);
-      console.log("privkey1 ", privkeyList);
-    });
-
-      
-      console.log("pubkey ", pubkeyList);
-
   }
 
   async function genProof() {
@@ -381,8 +340,8 @@ function Home(props) {
 
   return (
     <div className='home'>
+      <Typography align='center' variant = "h4"> Master Internship </Typography>
       <h1 align='center'>Home</h1>
-      <Typography align='center' variant = "h4"> Nhat Huyen's Internship </Typography>
       <Container maxWidth = "sm" className = {classes.cardGrid}> 
         <Grid container spacing ={4}>
           <Grid item> 
@@ -399,8 +358,14 @@ function Home(props) {
                   <Loader>Loading</Loader>
                 </Dimmer> */}
                 
-              
-                <Typography gutterBottom variant = "subtitle1"> {currentAddress} </Typography>
+                <div style={{display: 'flex'}}>
+                  <QRCode value={key.pubkey} size={110}/>
+                  <div>
+                    <Typography style={{display: 'flex', marginLeft: '10px'}} gutterBottom variant = "subtitle2"> {currentAddress} </Typography>
+                    <Typography style={{display: 'flex', marginLeft: '10px'}} gutterBottom variant = "subtitle2"> {key.pubkey} </Typography> 
+                  </div>
+
+                </div>
                 {/* <input 
                   onChange={e => setGreetingValue(e.target.value)} 
                   placeholder="Set greeting"
@@ -418,7 +383,6 @@ function Home(props) {
               <CardActions>
                
                 <Button size ="small" color="primary" onClick={register} >Register</Button>
-                <Button size ="small" color="primary" onClick={genKey} >Generate Key-pair</Button>
                 <Button size ="small" color="primary" onClick={getElBalance} >Get El Balance</Button>
                 
               </CardActions>

@@ -15,7 +15,7 @@ async function main(){
 		address: token.address,
 		abi: JSON.parse(token.interface.format('json'))
 	};
-	fs.writeFileSync('frontend/src/Token.json', JSON.stringify(data));
+	// fs.writeFileSync('frontend/src/Token.json', JSON.stringify(data));
 
 }
 

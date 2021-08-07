@@ -10,7 +10,7 @@ require("@nomiclabs/hardhat-waffle");
 //   }
 // });
 
-const INFURA_URL = 'https://rinkeby.infura.io/v3/5a2983b2fe824192949e7e0f80494758';
+const INFURA_URL = 'https://rinkeby.infura.io/v3/0536889ad25f4378bd250672238fdbf0';
 const PRIVATE_KEY = 'b4dde0d4f2685c127ae8e7644508ac7c70472bd9d38b4a464884ae158120e162';
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more

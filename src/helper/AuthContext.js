@@ -27,13 +27,12 @@ export function AuthProvider({ children }) {
     return auth.signOut()
   }
 
-  async function getKey(){
-    console.log(accId)
-    const response = await fetch("/getKey", {
+  async function getKey(uid){
+    const response = await fetch("/fetchKey", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        accId : password
+        'uid' : uid
       }),
     })
 
@@ -42,26 +41,19 @@ export function AuthProvider({ children }) {
       result = message["data"];
       const y = result["y"];
       const x = result["x"];
-      const g = result['g']
+      const balance = message['balance']
       setKey({pubkey:y, privkey:x})
     });
   }
 
-  async function createKey(){
-    const response = await fetch("/genKey", {
-      method: "GET",
-      headers: { "Content-Type": "application/json" }
-    })
-
-    let result
-    await response.json().then((message) => {
-      result = message["data"];
-      const y = result["y"];
-      const x = result["x"];
-      const g = result['g']
-      setKey({pubkey:y, privkey:x})
+  function writeUserData(userId, name, email, imageUrl) {
+    db.ref('users/' + userId).set({
+      username: name,
+      email: email,
+      profile_picture : imageUrl
     });
   }
+
 //   function resetPassword(email) {
 //     return auth.sendPasswordResetEmail(email)
 //   }
@@ -84,14 +76,9 @@ export function AuthProvider({ children }) {
         docRef.get().then((doc) => {
         if (doc.exists) {
             const addr = doc.data().address;
-            const hasPubkey = doc.data().pubKey;
             console.log(addr)           
             setCurrentAddress(addr);
-            if (hasPubkey){
-              setKey();
-            }else{
-              createKey();
-            }
+            getKey(user.uid);
 
         }else {
             // doc.data() will be undefined in this case
