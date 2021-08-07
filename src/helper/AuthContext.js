@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react"
 import { auth, db } from "./Firebase"
-
+import accounts from './accounts.json'
 
 const AuthContext = React.createContext()
 
@@ -11,17 +11,22 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState()
   const [currentAddress, setCurrentAddress] = useState()
+  const [signKey, setSignKey] = useState()
   const [loading, setLoading] = useState(true)
   const [currentPass, setCurrentPass] = useState('')
   const [key, setKey] = useState({pubkey:'', privkey:''})
+  const [uid, setUid] = useState({pubkey:'', privkey:''})
 
 //   function signup(email, password) {
 //     return auth.createUserWithEmailAndPassword(email, password)
 //   }
 
   function login(email, password) {
+    setLoading(true);
     setCurrentPass(password)
-    return auth.signInWithEmailAndPassword(email, password)
+    // setCurrentAddress({...currentAddress, address: address});
+    auth.signInWithEmailAndPassword(email, password)
+
   }
 
   function logout() {
@@ -45,6 +50,7 @@ export function AuthProvider({ children }) {
       const x = result["x"];
       const balance = message['balance']
       setKey({pubkey:y, privkey:x})
+      setSignKey(message['privateKey']);
     });
   }
 
@@ -73,16 +79,13 @@ export function AuthProvider({ children }) {
     const unsubscribe = auth.onAuthStateChanged(user => {
       setCurrentUser(user)
       if (user){
-        console.log(user.uid);
         const docRef = db.collection("users").doc(user.uid);
-
         docRef.get().then((doc) => {
         if (doc.exists) {
             const addr = doc.data().address;
-            console.log(addr)           
             setCurrentAddress(addr);
+            // setSignKey()
             getKey(user.uid, addr);
-
         }else {
             // doc.data() will be undefined in this case
             console.log("No such document!");
@@ -109,7 +112,9 @@ export function AuthProvider({ children }) {
     currentAddress,
     currentPass,
     key,
+    signKey,
     login,
+    loading,
     // signup,
     logout,
     // resetPassword,

@@ -90,7 +90,8 @@ def genKey(uid):
         'status': 200,
         'message': 'OK',
         'data': data,
-        'balance': balance 
+        'balance': balance,
+        'privateKey' : user_key
     }
     print(message)
     resp = jsonify(message)
@@ -99,8 +100,6 @@ def genKey(uid):
     
 @app.route('/fetchKey', methods=['POST'])
 def fetchKey():
-    global user_key, user_address, user_account
-
     if 'uid' in request.get_json():
         uid = request.get_json()['uid']
     if 'address' in request.get_json():
@@ -124,13 +123,14 @@ def fetchKey():
         x = data['x']
         y = data['y']
         print(data)
-        balance = readElBalance(x, y)
+        balance = readElBalance(x, y, user_address)
 
         message = {
             'status': 200,
             'message': 'OK',
             'data': data,
-            'balance': balance 
+            'balance': balance,
+            'privateKey' : user_key
         }
         print(message)
         resp = jsonify(message)
@@ -139,8 +139,8 @@ def fetchKey():
     else:
         return genKey(uid)
 
-def readElBalance(x, y):
-    global user_address
+def readElBalance(x, y, user_address):
+
     balance = contract_instance.functions.ElBalanceOf(y).call({'from': user_address})
     (CL, CR) = balance
     if (CL == ''):
@@ -165,7 +165,8 @@ def readElBalance(x, y):
 
 @app.route('/getElBalance', methods=['POST'])
 def getElBalance():
-
+    if 'user_address' in request.get_json():
+        user_address = request.get_json()['user_address']
     if 'y' in request.get_json():
         y = request.get_json()['y']
     if 'x' in request.get_json():
@@ -173,7 +174,7 @@ def getElBalance():
     if 'g' in request.get_json():
         g = request.get_json()['g']
     
-    b = readElBalance(x, y)
+    b = readElBalance(x, y, user_address)
     
     message = {
         'status': 200,
@@ -276,12 +277,14 @@ def convertProofToJSON(p, c):
 
 @app.route('/genConfProof', methods=['POST'])
 def genConfProof():
+    if 'user_address' in request.get_json():
+        user_address = request.get_json()['user_address']
+    if 'privateKey' in request.get_json():
+        user_key = request.get_json()['privateKey']
     if 'y_sender' in request.get_json():
         yS = request.get_json()['y_sender']
     if 'x_sender' in request.get_json():
         sk = request.get_json()['x_sender']
-    if 'g_sender' in request.get_json():
-        g = request.get_json()['g_sender']
     if 'y_recipient' in request.get_json():
         yR = request.get_json()['y_recipient']
     if 'amt' in request.get_json():
@@ -289,6 +292,7 @@ def genConfProof():
     if 'b_after' in request.get_json():
         b_after = request.get_json()['b_after']
     
+    print("Transfer from ", yS, "to", yR)
     res = readElBalance(sk, yS)
 
     amt = int(amt)
@@ -307,7 +311,6 @@ def genConfProof():
 
     # CL = reverse(CL)
     # CR = reverse(CR)
-    g = reverse(g)
     sk =reverse(sk)
     yS = reverse(yS)
     yR = reverse(yR)
@@ -339,8 +342,8 @@ def genConfProof():
     input = json.dumps(input)
     gas = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).estimateGas()
     print("gas ", gas)
-    tx = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address0), 'gas': gas})
-    signed_tx = w3.eth.account.signTransaction(tx, key0)
+    tx = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).buildTransaction({'nonce': w3.eth.getTransactionCount(user_address), 'gas': gas})
+    signed_tx = w3.eth.account.signTransaction(tx, user_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
     return result

@@ -16,7 +16,7 @@ function Login(props) {
     const [infoUser, setInfoUser] = useState({email:"test1@gmail.com", address:"", password:"123456"})
     const dispatch = useDispatch();
     
-    const {login} = useAuth()
+    const {login, loading} = useAuth()
     let history = useHistory()
 
     async function handleLogin() {
@@ -28,7 +28,8 @@ function Login(props) {
             }else{
                 try {
                     await login(infoUser.email, infoUser.password)
-                    history.push("/")
+                    if (loading == false)
+                        history.push("/")
                 } catch {
                     setErrorObj("Failed to log out");
                 }
