@@ -14,17 +14,13 @@ deployedContract =  json.load(open('./src/artifacts/contracts/Xcontract.sol/XCon
 abi = deployedContract['abi']
 bytecode = deployedContract['bytecode']
 # contract = w3.eth.contract(abi=abi, bytecode=bytecode)
+print("contract_address  ", contract_address)
+contract_address = Web3.toChecksumAddress(contract_address)
 contract_instance = w3.eth.contract(abi=abi, address=contract_address)
-# admin_address = '0x492dc9d2201c07617C937a193048A7be320f677A'
 
-admin_key = '0xb4dde0d4f2685c127ae8e7644508ac7c70472bd9d38b4a464884ae158120e162'
-
-user_key = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d'
-# admin_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-#localhost
-admin_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-
-acct = w3.eth.account.privateKeyToAccount(admin_key)
+admin_key = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
+acc_admin = w3.eth.account.privateKeyToAccount(admin_key)
+admin_address = Web3.toChecksumAddress(acc_admin.address)
 el = ElGamal(group1)
 
 import firebase_admin
@@ -38,18 +34,19 @@ users_ref = db.collection('users')
 
 def check_newUser():
     docs = users_ref.stream()
-
-    print("sender : ",acct.address)
+    print("admin address : ",admin_address)
     args = []
     for doc in docs:
         # users_list.append(doc.to_dict())
         # print(u'{} => {}'.format(doc.id, doc.to_dict()))
         user = doc.to_dict()['address']
+        user = Web3.toChecksumAddress(user)
         print(user)
         args.append(user)
         # 
     # args = [w3.utils.asciiToHex(x) for x in args]
-    tx = contract_instance.functions.authorizeNewUser(args).buildTransaction({'nonce': w3.eth.getTransactionCount(acct.address)})
+
+    tx = contract_instance.functions.authorizeNewUser(args).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address), 'from': admin_address})
     signed_tx = w3.eth.account.signTransaction(tx, admin_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     
@@ -90,7 +87,7 @@ def handle_event1(event):
     v = Verifier()
     result = v.verify(proof, challenge)
     print(id, " VERIFIED ", result)
-    tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+    tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address)})
     signed_tx = w3.eth.account.signTransaction(tx, key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print(hash.hex())
@@ -151,7 +148,7 @@ def homo_computation(info):
     CL2 = convert(CL_r_new)
     CR2 = convert(CR_r_new)
 
-    tx = contract_instance.functions.updateBalance(y_str, CL1, CR1, yr_str, CL2, CR2).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
+    tx = contract_instance.functions.updateBalance(y_str, CL1, CR1, yr_str, CL2, CR2).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address)})
     signed_tx = w3.eth.account.signTransaction(tx, key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print(hash.hex())

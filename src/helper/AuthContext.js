@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react"
 import { auth, db } from "./Firebase"
 
+
 const AuthContext = React.createContext()
 
 export function useAuth() {
@@ -27,12 +28,13 @@ export function AuthProvider({ children }) {
     return auth.signOut()
   }
 
-  async function getKey(uid){
+  async function getKey(uid, address){
     const response = await fetch("/fetchKey", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        'uid' : uid
+        'uid' : uid,
+        'address' :address
       }),
     })
 
@@ -73,12 +75,13 @@ export function AuthProvider({ children }) {
       if (user){
         console.log(user.uid);
         const docRef = db.collection("users").doc(user.uid);
+
         docRef.get().then((doc) => {
         if (doc.exists) {
             const addr = doc.data().address;
             console.log(addr)           
             setCurrentAddress(addr);
-            getKey(user.uid);
+            getKey(user.uid, addr);
 
         }else {
             // doc.data() will be undefined in this case

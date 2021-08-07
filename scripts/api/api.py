@@ -1,3 +1,4 @@
+from json import encoder
 from os import X_OK
 import time
 from flask import Flask
@@ -23,17 +24,14 @@ bytecode = deployedContract['bytecode']
 contract_instance = w3.eth.contract(abi=abi, address=contract_address)
 # acc_address = '0x492dc9d2201c07617C937a193048A7be320f677A'
 # key = '0xb4dde0d4f2685c127ae8e7644508ac7c70472bd9d38b4a464884ae158120e162'
-acc_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+# acc_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+# key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
-key1 = "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
-acct = w3.eth.account.privateKeyToAccount(key1)
-acc_address1 = acct.address
-
-# acc_address0 = "0xC5e65BF63b33B865e78A02b13f0db60713c3Ff96"
-# key0 = "35b2f7395b5fd9a256dc9ecc113e04a0777dcd3660bb7b6a4d7687c7ef3c7ed1"
-# acc_address1 = "0x9139a76E363d2283ED56592519fFdD876C48EB68"
-# key1 = "daa521e0a25e3ee527ea9992a6aeb7b141cf25dbb88cf485ad8c1061e2cd82b3"
+# key1 = "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
+# acct = w3.eth.account.privateKeyToAccount(key1)
+# acc_address1 = acct.address
+global user_key, user_address, user_account
+user_address = ''
 
 global y1 
 y1 = 1
@@ -51,6 +49,26 @@ def get_current_time():
     
     return {'time': time.time()}
 
+
+def initBalance(y):
+    y_hex = reverse(y)
+    r = group1.random(ZR)
+    CR = g**r
+    CR = convert(CR)
+    CL = g**initB*(y_hex**r)
+    CL = convert(CL)
+
+    tx = contract_instance.functions.initElBalance(y, CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(user_address)})
+    signed_tx = w3.eth.account.signTransaction(tx, user_key)
+    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    print("Init EL Balance ", hash.hex())
+    return {
+            'CL':CL,
+            'CR':CR,
+            'b':initB
+        }      
+    
+
 def genKey(uid):
 
     # if 'uid' in request.get_json():
@@ -65,37 +83,38 @@ def genKey(uid):
     with open(file_name, 'w') as outfile:
         json.dump(data, outfile)
     outfile.close()
-  
-    r = group1.random(ZR)
-    CR = g**r
-    CR = convert(CR)
-    CL = g**initB*(y**r)
-    CL = convert(CL)
 
-    tx = contract_instance.functions.initElBalance(data['y'], CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
-    signed_tx = w3.eth.account.signTransaction(tx, key)
-    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    print("Init EL Balance ", hash.hex())
+    balance = initBalance(data['y'])  
 
     message = {
         'status': 200,
         'message': 'OK',
         'data': data,
-        'balance': {
-            'CL':CL,
-            'CR':CR,
-            'b':initB
-        }      
+        'balance': balance 
     }
     print(message)
     resp = jsonify(message)
     resp.status_code = 200  
     return resp
-
+    
 @app.route('/fetchKey', methods=['POST'])
 def fetchKey():
+    global user_key, user_address, user_account
+
     if 'uid' in request.get_json():
         uid = request.get_json()['uid']
+    if 'address' in request.get_json():
+        user_address = request.get_json()['address']
+    if path.exists('accounts.txt'):
+        f = open('accounts.txt', 'r+')
+        data = json.load(f)
+        f.close()
+        user_address = user_address.lower()
+        print("current address ", user_address)
+        user_key = data[user_address]
+        user_account = w3.eth.account.privateKeyToAccount(user_key)
+        user_address = user_account.address
+
     file_name = 'key/' + uid + '.txt'
     print("\n\n?? Found key in file ", path.exists(file_name))
     if path.exists(file_name):
@@ -106,6 +125,7 @@ def fetchKey():
         y = data['y']
         print(data)
         balance = readElBalance(x, y)
+
         message = {
             'status': 200,
             'message': 'OK',
@@ -119,15 +139,16 @@ def fetchKey():
     else:
         return genKey(uid)
 
-
-
 def readElBalance(x, y):
-    balance = contract_instance.functions.ElBalanceOf(y).call()
-
+    global user_address
+    balance = contract_instance.functions.ElBalanceOf(y).call({'from': user_address})
+    (CL, CR) = balance
+    if (CL == ''):
+        return initBalance(y)
     x =reverse(x)
     y = reverse(y)
+    
 
-    (CL, CR) = balance
     print("Encrypted balance stored in Smart Contract\n", (CL, CR))
     CL_hex = reverse(CL)
     CR_hex = reverse(CR)

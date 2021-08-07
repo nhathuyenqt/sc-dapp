@@ -74,6 +74,7 @@ contract XContract{
     // }
 
     function initElBalance(string calldata y, string calldata cL, string calldata cR) public {
+        require(validAddress[msg.sender] == true, "You haven't registered. " );
         console.log(msg.sender);
         console.log(association);
         encrytedBalance[y] = ElBalance({CL : cL, CR : cR});    
