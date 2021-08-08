@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react"
 import { auth, db } from "./Firebase"
 import accounts from './accounts.json'
+import xtype from 'xtypejs'
 
 const AuthContext = React.createContext()
 
@@ -10,12 +11,11 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState()
-  const [currentAddress, setCurrentAddress] = useState()
-  const [signKey, setSignKey] = useState()
+  const [currentBCAccount, setCurrentBCAccount] = useState({address:'', privateKey:''})
   const [loading, setLoading] = useState(true)
   const [currentPass, setCurrentPass] = useState('')
-  const [key, setKey] = useState({pubkey:'', privkey:''})
-  const [uid, setUid] = useState({pubkey:'', privkey:''})
+  const [keypair, setKeypair] = useState({x:'', y:''})
+  const [uid, setUid] = useState('')
 
 //   function signup(email, password) {
 //     return auth.createUserWithEmailAndPassword(email, password)
@@ -46,11 +46,15 @@ export function AuthProvider({ children }) {
     let result
     await response.json().then((message) => {
       result = message["data"];
-      const y = result["y"];
-      const x = result["x"];
+      // const y_value = result.y;
+      // const x_value = result.x;
+      setKeypair(result);
       const balance = message['balance']
-      setKey({pubkey:y, privkey:x})
-      setSignKey(message['privateKey']);
+      // console.log("check result key2 ", result);
+      
+      console.log("check key3 ", keypair)
+      // setSignKey(message['privateKey']);
+      setCurrentBCAccount({address: address, privateKey:message['privateKey']});
     });
   }
 
@@ -77,29 +81,32 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
+      setLoading(true);
       setCurrentUser(user)
       if (user){
         const docRef = db.collection("users").doc(user.uid);
         docRef.get().then((doc) => {
         if (doc.exists) {
             const addr = doc.data().address;
-            setCurrentAddress(addr);
+            setCurrentBCAccount({...currentBCAccount, address:addr});
             // setSignKey()
             getKey(user.uid, addr);
         }else {
             // doc.data() will be undefined in this case
             console.log("No such document!");
-            setCurrentAddress('')
+            setCurrentBCAccount({address:'', privateKey:''})
+            setKeypair({x:'', y:''})
             setCurrentPass('')
             //getPubkey
 
           }
           }).catch((error) => {
             console.log("Error getting document:", error);
-            setCurrentAddress('')
+            
             });
       }else{
-        setCurrentAddress(null);
+        setCurrentBCAccount({address:'', privateKey:''})
+        setKeypair({x:'', y:''})
       }
       setLoading(false)
     })
@@ -109,10 +116,9 @@ export function AuthProvider({ children }) {
 
   const value = {
     currentUser,
-    currentAddress,
+    currentBCAccount,
     currentPass,
-    key,
-    signKey,
+    keypair,
     login,
     loading,
     // signup,

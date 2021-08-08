@@ -149,7 +149,7 @@ def homo_computation(info):
     CR2 = convert(CR_r_new)
 
     tx = contract_instance.functions.updateBalance(y_str, CL1, CR1, yr_str, CL2, CR2).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address)})
-    signed_tx = w3.eth.account.signTransaction(tx, key)
+    signed_tx = w3.eth.account.signTransaction(tx, admin_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print(hash.hex())
 

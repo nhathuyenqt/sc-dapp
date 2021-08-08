@@ -19,7 +19,7 @@ function Home(props) {
   // const history = useHistory();
 
 
-  const { currentAddress, key, loading } = useAuth()
+  const { currentBCAccount, keypair, loading } = useAuth()
 
   const classes = useStyles()
 
@@ -31,11 +31,8 @@ function Home(props) {
   const [recipient, setTo] = useState()
   const [currentTime, setCurrentTime] = useState(0);
   const [accId, setAccId] = useState(0);
-
-  const [pubkeyList, setPubkeyList] = useState({});
-  const [privkeyList, setPrivkeyList] = useState({});
   const [noti, setNoti] = useState("")
-  console.log("address2 ", currentAddress);
+
 
   // useEffect(() => {
   //   requestAccount()
@@ -189,16 +186,16 @@ function Home(props) {
   }
 
   async function getElBalance(){
-    // setLoading(true)
+
     if (typeof window.ethereum !== 'undefined'){
 
       const response = await fetch("/getElBalance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          'x' : privkeyList[accId],
-          'y' : pubkeyList[accId],
-
+          'x' : keypair.x,
+          'y' : keypair.y,
+          'user_key':currentBCAccount.privateKey
         }),
       })
       // setLoading(false)
@@ -242,17 +239,18 @@ function Home(props) {
 
   async function genConfProof() {
     // setLoading(true)
+    console.log("check key ", currentBCAccount.privateKey)
       const response = await fetch("/genConfProof", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          'privateKey': currentAddress.privateKey,
-          'user_address': currentAddress.address,
-          'y_sender': key.pubkey,
+          'privateKey': currentBCAccount.privateKey,
+          'user_address': currentBCAccount.address,
+          'y_sender': keypair.y,
           'y_recipient': recipient,
           'amt':amount,
           'b_after':197,
-          'x_sender': key.privkey
+          'x_sender': keypair.x
         }),
       })
       // setLoading(false)
@@ -365,10 +363,10 @@ function Home(props) {
                 </Dimmer> */}
                 
                 <div style={{display: 'flex'}}>
-                  <QRCode value={key.pubkey} size={110}/>
+                  <QRCode value={keypair.y} size={110}/>
                   <div>
-                    <Typography style={{display: 'flex', marginLeft: '10px'}} gutterBottom variant = "subtitle2"> {currentAddress} </Typography>
-                    <Typography style={{display: 'flex', marginLeft: '10px'}} gutterBottom variant = "subtitle2"> {key.pubkey} </Typography> 
+                    <Typography style={{display: 'flex', marginLeft: '10px'}} gutterBottom variant = "subtitle2"> {currentBCAccount.address} </Typography>
+                    <Typography style={{display: 'flex', marginLeft: '10px'}} gutterBottom variant = "subtitle2"> {keypair.y} </Typography> 
                   </div>
 
                 </div>

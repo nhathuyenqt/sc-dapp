@@ -30,14 +30,8 @@ contract_instance = w3.eth.contract(abi=abi, address=contract_address)
 # key1 = "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
 # acct = w3.eth.account.privateKeyToAccount(key1)
 # acc_address1 = acct.address
-global user_key, user_address, user_account
-user_address = ''
 
-global y1 
-y1 = 1
-global y0
-y0 = 0
-global initB
+
 initB = 200
 # acct = w3.eth.account.privateKeyToAccount(key)
 
@@ -50,7 +44,7 @@ def get_current_time():
     return {'time': time.time()}
 
 
-def initBalance(y):
+def initBalance(y, user_account):
     y_hex = reverse(y)
     r = group1.random(ZR)
     CR = g**r
@@ -58,8 +52,8 @@ def initBalance(y):
     CL = g**initB*(y_hex**r)
     CL = convert(CL)
 
-    tx = contract_instance.functions.initElBalance(y, CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(user_address)})
-    signed_tx = w3.eth.account.signTransaction(tx, user_key)
+    tx = contract_instance.functions.initElBalance(y, CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address)})
+    signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print("Init EL Balance ", hash.hex())
     return {
@@ -69,7 +63,7 @@ def initBalance(y):
         }      
     
 
-def genKey(uid):
+def genKey(uid, user_acc):
 
     # if 'uid' in request.get_json():
     #     uid = request.get_json()['uid']
@@ -84,14 +78,14 @@ def genKey(uid):
         json.dump(data, outfile)
     outfile.close()
 
-    balance = initBalance(data['y'])  
+    balance = initBalance(data['y'], user_acc)  
 
     message = {
         'status': 200,
         'message': 'OK',
         'data': data,
         'balance': balance,
-        'privateKey' : user_key
+        'privateKey' : user_acc.key
     }
     print(message)
     resp = jsonify(message)
@@ -114,6 +108,7 @@ def fetchKey():
         user_account = w3.eth.account.privateKeyToAccount(user_key)
         user_address = user_account.address
 
+
     file_name = 'key/' + uid + '.txt'
     print("\n\n?? Found key in file ", path.exists(file_name))
     if path.exists(file_name):
@@ -123,7 +118,7 @@ def fetchKey():
         x = data['x']
         y = data['y']
         print(data)
-        balance = readElBalance(x, y, user_address)
+        balance = readElBalance(x, y, user_account)
 
         message = {
             'status': 200,
@@ -137,14 +132,14 @@ def fetchKey():
         resp.status_code = 200
         return resp
     else:
-        return genKey(uid)
+        return genKey(uid, user_account)
 
-def readElBalance(x, y, user_address):
+def readElBalance(x, y, user_account):
 
-    balance = contract_instance.functions.ElBalanceOf(y).call({'from': user_address})
+    balance = contract_instance.functions.ElBalanceOf(y).call({'from': user_account.address})
     (CL, CR) = balance
     if (CL == ''):
-        return initBalance(y)
+        return initBalance(y, user_account)
     x =reverse(x)
     y = reverse(y)
     
@@ -165,16 +160,19 @@ def readElBalance(x, y, user_address):
 
 @app.route('/getElBalance', methods=['POST'])
 def getElBalance():
-    if 'user_address' in request.get_json():
-        user_address = request.get_json()['user_address']
+    print(request.get_json())
+    if 'user_key' in request.get_json():
+        user_key = request.get_json()['user_key']
     if 'y' in request.get_json():
         y = request.get_json()['y']
     if 'x' in request.get_json():
         x = request.get_json()['x']
     if 'g' in request.get_json():
         g = request.get_json()['g']
-    
-    b = readElBalance(x, y, user_address)
+
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+    user_address = user_account.address
+    b = readElBalance(x, y, user_account)
     
     message = {
         'status': 200,
@@ -291,9 +289,10 @@ def genConfProof():
         amt = request.get_json()['amt']        
     if 'b_after' in request.get_json():
         b_after = request.get_json()['b_after']
-    
+    print("api key ", user_key)
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
     print("Transfer from ", yS, "to", yR)
-    res = readElBalance(sk, yS)
+    res = readElBalance(sk, yS, user_account)
 
     amt = int(amt)
 
@@ -342,7 +341,7 @@ def genConfProof():
     input = json.dumps(input)
     gas = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).estimateGas()
     print("gas ", gas)
-    tx = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).buildTransaction({'nonce': w3.eth.getTransactionCount(user_address), 'gas': gas})
+    tx = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address), 'gas': gas})
     signed_tx = w3.eth.account.signTransaction(tx, user_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
