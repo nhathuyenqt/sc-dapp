@@ -45,6 +45,7 @@ def get_current_time():
 
 
 def initBalance(y, user_account):
+
     y_hex = reverse(y)
     r = group1.random(ZR)
     CR = g**r
@@ -52,7 +53,7 @@ def initBalance(y, user_account):
     CL = g**initB*(y_hex**r)
     CL = convert(CL)
 
-    tx = contract_instance.functions.initPocket(y, CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address)})
+    tx = contract_instance.functions.initPocket(y, CL, CR).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address), 'from': user_account.address})
     signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print("Init EL Balance ", hash.hex())
@@ -195,7 +196,7 @@ def newPost():
     
     user_account = w3.eth.account.privateKeyToAccount(user_key)
 
-    tx = contract_instance.functions.postTask(content).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address)})
+    tx = contract_instance.functions.postTask(content).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address), 'from': user_account.address})
     signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print("Tx ", hash.hex())
@@ -213,15 +214,15 @@ def newPost():
 def loadTasks():
     tx = contract_instance.functions.getTasks().call()
     print(tx)
-    tasks = []
-    for task in tx:
-        t = {'des' :task[0], 'id': task[2]}
-        tasks.append(t)
-    print(tasks)
+    # tasks = []
+    # for task in tx:
+    #     t = {'id': task[0], 'des':tas}
+    #     tasks.append(t)
+    # print(tasks)
     message = {
         'status': 200,
         'message': 'OK',
-        'data' : tasks
+        'data' : tx
     }
     resp = jsonify(message)
     resp.status_code = 200

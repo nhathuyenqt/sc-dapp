@@ -50,7 +50,6 @@ export function AuthProvider({ children }) {
       // const y_value = result.y;
       // const x_value = result.x;
       setKeypair(result);
-      console.log(message['balance'])
       setBalance(message['balance'])
       // setSignKey(message['privateKey']);
       setCurrentBCAccount({address: address, privateKey:message['privateKey']});

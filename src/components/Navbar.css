@@ -24,6 +24,7 @@
     left: -100%;
     transition: 850ms;
     z-index: 9999;
+
   }
   
   .nav-menu.active {
@@ -50,6 +51,7 @@
     align-items: center;
     padding: 0 16px;
     border-radius: 4px;
+        margin-left: 16px;
   }
   
   .nav-text a:hover {
@@ -77,6 +79,4 @@
     float: right;
   }
   
-  span {
-    margin-left: 16px;
-  }
+ 

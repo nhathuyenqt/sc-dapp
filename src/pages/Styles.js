@@ -7,7 +7,7 @@ const useStyles = makeStyles((theme) => ({
         display :'flex',
         flexDirection: 'column',
         width: '45rem',
-        // marginLeft: '15rem', 
+        marginLeft: '15rem', 
         // backgroundColor: '#3f4c6b'
         backgroundColor: theme.palette.background.paper
     },

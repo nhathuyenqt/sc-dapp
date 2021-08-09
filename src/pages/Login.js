@@ -28,7 +28,7 @@ function Login(props) {
             }else{
                 try {
                     await login(infoUser.email, infoUser.password)
-                    if (loading == false)
+                    if (loading === false)
                         history.push("/")
                 } catch {
                     setErrorObj("Failed to log out");
@@ -44,7 +44,7 @@ function Login(props) {
         <form >
             <div className ="form-inner">
                 <h2> Login</h2>
-                {(errors == false) ? (<div className="error">{errorsObj}</div>):""}           
+                {(errors === false) ? (<div className="error">{errorsObj}</div>):""}           
                     <div className="form-group">
                         <label htmlFor="name">Email:</label>
                         <input type="text" name="email" id="email" onChange={e => setInfoUser({...infoUser, email:e.target.value})} value = {infoUser.email}></input>
@@ -63,12 +63,5 @@ function Login(props) {
     
 }
 
-const mapStateToProps = (state) => {
-    return {
-        errorMessage: state.auth.errorMessage,
-        successMessage: state.auth.successMessage,
-        showLoading: state.auth.showLoading,
-    };
-};
 
 export default Login;

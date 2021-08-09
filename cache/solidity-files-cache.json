@@ -38,7 +38,7 @@
       ]
     },
     "/Users/kzjouf/Desktop/project/scdapp/node_modules/hardhat/console.sol": {
-      "lastModificationDate": 1628028439270,
+      "lastModificationDate": 1628547608990,
       "contentHash": "cc4777addd464ea56fa35b1c45df0591",
       "sourceName": "hardhat/console.sol",
       "solcConfig": {
@@ -72,8 +72,8 @@
       ]
     },
     "/Users/kzjouf/Desktop/project/scdapp/contracts/XContract.sol": {
-      "lastModificationDate": 1628507293719,
-      "contentHash": "4b943e30e30f93536137d0b5f2f469ba",
+      "lastModificationDate": 1628546415462,
+      "contentHash": "52ffbb4e1650dab4ef1d7d240ca51d8b",
       "sourceName": "contracts/XContract.sol",
       "solcConfig": {
         "version": "0.8.4",

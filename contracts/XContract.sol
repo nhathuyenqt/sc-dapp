@@ -72,10 +72,17 @@ contract XContract{
             validAddress[newAcc[i]] = true;
             // console.log(newAcc[i]);
         }
+        
         // console.log( newAcc);
         
     }
 
+    function checkAuthorizeNewUser(address newAcc) public view onlyAdmin returns (bool) {
+        
+        
+        return    validAddress[newAcc];
+       
+    }
     // function registerKey(string  memory key, string  memory b1, string memory b2) public {
     //     if (validAddress[msg.sender] == false)
     //         revert();
@@ -103,13 +110,14 @@ contract XContract{
     }
 
     function postTask(string memory _task) public {
-        require(validAddress[msg.sender] == true, "You haven't registered." );
+        require(validAddress[msg.sender] == true, "You haven't registered.");
         requestList.push(Request({
             content : _task,
-            pubkeyOfSender : "",
+            pubkeyOfSender : validPubkey[msg.sender],
             id : numberOfRequest,
             state : State.None
         }));
+        numberOfRequest +=1;
     }
 
     function raiseAPrice(string memory _price, uint id) public {

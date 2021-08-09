@@ -51,6 +51,8 @@ def check_newUser():
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     
     print("check user : ", hash.hex())
+    tx = contract_instance.functions.checkAuthorizeNewUser('0x976EA74026E726554dB657fA54763abd0C3a0aa9').call({'from': admin_address})
+    print("check user : ", tx)
 
 def reverse(a):
     if (type(a) ==  list):
@@ -88,7 +90,7 @@ def handle_event1(event):
     result = v.verify(proof, challenge)
     print(id, " VERIFIED ", result)
     tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address)})
-    signed_tx = w3.eth.account.signTransaction(tx, key)
+    signed_tx = w3.eth.account.signTransaction(tx, admin_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print(hash.hex())
 
@@ -188,9 +190,9 @@ def handle_event_transfer(event):
 
     print("Invalid")
 
-    tx = contract_instance.functions.confirmProof(id, ok).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address)})
-    signed_tx = w3.eth.account.signTransaction(tx, key)
-    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    tx = contract_instance.functions.confirmProof(id, ok).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address)})
+    signed_tx = w3.eth.account.signTransaction(tx, admin_key)
+    hash = w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print(hash.hex())
 
 async def log_loop(event_filter, poll_interval):
