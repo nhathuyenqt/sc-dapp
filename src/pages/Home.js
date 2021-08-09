@@ -1,17 +1,32 @@
 import React from 'react';
 
-import {Typography, Button, AppBar, Spinner, Card,  CircularProgress, Container, CardActions, Grid, CardContent, TextField} from '@material-ui/core'
+import {Typography, Button, Card,  CircularProgress, Container, CardActions, Grid, CardContent, TextField} from '@material-ui/core'
 import QRCode from "react-qr-code";
 import  useStyles  from './Styles.js';
+import { withStyles } from '@material-ui/core/styles';
 import {useState, useEffect} from 'react'
 import {ethers} from 'ethers'
 import xtype from 'xtypejs'
 import text  from './../contract_address.json';
 import { useAuth } from "../helper/AuthContext"
-import { useHistory } from 'react-router-dom';
-import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
-import { KeyboardArrowLeft } from '@material-ui/icons';
+import { purple } from '@material-ui/core/colors';
 
+import Switch from '@material-ui/core/Switch';
+import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
+
+const PurpleSwitch = withStyles({
+  switchBase: {
+    color: purple[300],
+    '&$checked': {
+      color: purple[500],
+    },
+    '&$checked + $track': {
+      backgroundColor: purple[500],
+    },
+  },
+  checked: {},
+  track: {},
+})(Switch);
 // const contractAddress = '0x2c934A1a4F5fC1E96Cf55FDbCbFc4614580B730a' // rinkeby
 const contractAddress = text['contract_address']
 
@@ -19,19 +34,20 @@ function Home(props) {
   // const history = useHistory();
 
 
-  const { currentBCAccount, keypair, loading } = useAuth()
+  const { currentBCAccount, keypair, loading, balance} = useAuth()
 
   const classes = useStyles()
 
   const [greeting, setGreetingValue] = useState('')
   const [userAccount, setUserAccount] = useState('')
-  
-  const [balance, setBalance] = useState()
+
   const [amount, setAmount] = useState()
   const [recipient, setTo] = useState()
   const [currentTime, setCurrentTime] = useState(0);
   const [accId, setAccId] = useState(0);
   const [noti, setNoti] = useState("")
+  const [post, setPost] = useState("")
+  const [balanceView, setBalanceView] = useState(true);
 
 
   // useEffect(() => {
@@ -109,6 +125,8 @@ function Home(props) {
       fetchGreeting()
     }
   }
+
+  
   async function fetchGreeting(){
     if (typeof window.ethereum !== 'undefined'){
       const provider = new ethers.providers.Web3Provider(window.ethereum)
@@ -123,25 +141,7 @@ function Home(props) {
     }
   }
 
-  async function getBalance(){
-    // setLoading(true)
-    if (typeof window.ethereum !== 'undefined'){
-      const provider = new ethers.providers.Web3Provider(window.ethereum)
-      const contract = new ethers.Contract(contractAddress, XContract.abi, provider)
-      const signer =  provider.getSigner()
-      const [account] = await window.ethereum.request({method: 'eth_requestAccounts'})
-      const acc = signer.getAddress()
-
-      const b = await contract.balanceOf(account)
-      // setAmount(balance.toString())
-      console.log('provider: ', provider)
-      console.log('signer: ', signer)
-      console.log('address: ', acc)
-      console.log('balance: ', b.toString())
-      setBalance(b.toString())
-      // setLoading(false)
-    }
-  }
+ 
 
   async function register(){
     // setLoading(true)
@@ -187,8 +187,6 @@ function Home(props) {
 
   async function getElBalance(){
 
-    if (typeof window.ethereum !== 'undefined'){
-
       const response = await fetch("/getElBalance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -209,7 +207,7 @@ function Home(props) {
       // console.log('balance: ', b.toString())
       // setBalance(b.toString())
       // setLoading(false)
-    }
+    
   }
 
   async function sendPrivateToken() {
@@ -238,8 +236,7 @@ function Home(props) {
   }
 
   async function genConfProof() {
-    // setLoading(true)
-    console.log("check key ", currentBCAccount.privateKey)
+
       const response = await fetch("/genConfProof", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -259,6 +256,19 @@ function Home(props) {
         result = message
       });
       return result
+  }
+  async function newPost() {
+
+      const response = await fetch("/newPost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          'privateKey': currentBCAccount.privateKey,
+          'pubkey' : keypair.y,
+          'content':post
+        }),
+      })
+
   }
 
   async function confTransfer() {
@@ -375,19 +385,12 @@ function Home(props) {
                   placeholder="Set greeting"
                   value = {greeting}
                 /> */}
-               <TextField
-                  onChange={e => setAccId(e.target.value)} 
-                  placeholder="ACC ID"
-                  variant='outlined'
-                  fullWidth
-                  color ="secondary"
-                  className={classes.field}
-                /> 
+    
               </CardContent>
               <CardActions>
                
-                <Button size ="small" color="primary" onClick={register} >Register</Button>
-                <Button size ="small" color="primary" onClick={getElBalance} >Get El Balance</Button>
+
+                
                 
               </CardActions>
             </Card>
@@ -401,10 +404,23 @@ function Home(props) {
 
             <CardContent className = {classes.cardContent}>
               <Typography gutterBottom variant = "h5"> Balance </Typography>
-              <Typography textAlign='left'> {noti} </Typography>
-              
-              
-              <Typography gutterBottom> {balance}</Typography>
+              <div style={{display: 'flex'}}>
+                <Grid container alignItems="center" spacing={2}>
+                  <Grid item>Encrypted</Grid>
+                  <Grid item sm ={6}>
+                    <Switch
+                   
+                          checked={balanceView}
+                          onChange={e => setBalanceView(e.target.checked)}
+                          name="checkedA"
+                          inputProps={{ 'aria-label': 'secondary checkbox' }}           />
+                  </Grid>
+                  <Grid item>Raw</Grid>
+                </Grid>
+              </div>
+              {balanceView ?
+              (<Typography variant = "subtitle2" gutterBottom>({balance.CL},{balance.CR}) </Typography>):
+              (<Typography variant = "subtitle2" gutterBottom> {balance.b} </Typography>)}
               <TextField onChange={e => setTo(e.target.value)} placeholder="Recipient Public Key" 
                     variant='outlined'
                     fullWidth
@@ -419,11 +435,31 @@ function Home(props) {
                 /> 
             </CardContent>
             <CardActions>
-              <Button size ="small" color="primary" onClick={getBalance} > Get Balance </Button>
-              <Button size ="small" color="primary" onClick={sendCoins} >Send</Button>
-              <Button size ="small" color="primary" onClick={sendPrivateToken} >Send Token</Button>
+              <Button size ="small" color="primary" onClick={getElBalance} >Get El Balance</Button>
               <Button size ="small" color="primary" onClick={confTransfer} >Conf Transfer</Button>
-              
+            </CardActions>
+          </Card>
+          </Grid>
+          <Grid item>
+              <Card className ={classes.card} maxWidth = "md">
+            {/* <CardMedia 
+              className ={classes.cardMedia}
+                image ="https://source.unsplash.com/random"
+                title="Image title" /> */}
+
+            <CardContent className = {classes.cardContent}>
+              <Typography gutterBottom variant = "h5"> New post </Typography>
+         
+        
+              <TextField onChange={e => setPost(e.target.value)} placeholder="Task" variant='outlined'
+                  fullWidth
+                  color ="secondary"
+                  className={classes.field}
+                  defaultValue = {post}
+                /> 
+            </CardContent>
+            <CardActions>
+              <Button size ="small" color="primary" onClick={newPost} >Post new task</Button>
             </CardActions>
           </Card>
           </Grid>

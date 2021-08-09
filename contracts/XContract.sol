@@ -1,7 +1,6 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-
 import "hardhat/console.sol";
 
 contract XContract{
@@ -18,27 +17,41 @@ contract XContract{
     mapping(address => bool) private validAddress;
     mapping(address => string) private validPubkey;
     mapping(string => ElBalance) private encrytedBalance;
+    mapping(string => address) private ownerOfPubkey;
     
     address public association;
     Request[] requestList;
+    // AvailaleRequest[] availaleRequsestList;
+
     uint numberOfClosedRq;
     uint numberOfRequest; 
     // enum State {None, WaitingService, Available, OnWorking, Processing, Assigned, WaitingConfirm, Completed}
-    enum State {Processing, Assigned, WaitingPaid, Closed, Cancel}
+    enum State {None, Processing, Assigned, WaitingPaid, Closed, Cancel}
 
     struct Request{
-        address sender;
+        
         uint id;
+        string content;
+        string pubkeyOfSender;
         // string[4] proof;
+
         State state;        
     }
+
+    struct AvailableRequest{
+        uint id;
+        string content;
+        State state; 
+    }
+
 
     event InitBalance(string pk);
     event UpdateState(address add, uint balance);
     event NewRequest(uint id, string proof);
     event TestMsg(string newMsg);
     event NewConfTransfer(uint id, string rangeproof1, string rangeproof2, string sigmaProof, string input);
-    
+    event aNewPrice(uint id,string _price, string bidderKey);
+
     modifier onlyAdmin() {
       require(msg.sender == association, "You are not authorized.");
       _;
@@ -73,10 +86,9 @@ contract XContract{
     //     emit InitBalance(key);               
     // }
 
-    function initElBalance(string calldata y, string calldata cL, string calldata cR) public {
+    function initPocket(string calldata y, string calldata cL, string calldata cR) public {
         require(validAddress[msg.sender] == true, "You haven't registered. " );
-        console.log(msg.sender);
-        console.log(association);
+        validPubkey[msg.sender] = y;
         encrytedBalance[y] = ElBalance({CL : cL, CR : cR});    
         console.log("sender acc ", encrytedBalance[y].CL, " and ", encrytedBalance[y].CR);
                  
@@ -90,18 +102,43 @@ contract XContract{
         return symbol;
     }
 
-    function setGreeting(string memory _greeting) public {
-        console.log("Changing greeting from '%s' to '%s'", symbol, _greeting);
-        symbol = _greeting;
-        emit TestMsg(symbol);
+    function postTask(string memory _task) public {
+        require(validAddress[msg.sender] == true, "You haven't registered." );
+        requestList.push(Request({
+            content : _task,
+            pubkeyOfSender : "",
+            id : numberOfRequest,
+            state : State.None
+        }));
+    }
+
+    function raiseAPrice(string memory _price, uint id) public {
+        require(validAddress[msg.sender] == true, "You haven't registered. ");
+        // string memory requestSenderKey = requestList[id].pubkeyOfSender;
+        // address requestSender = ownerOfPubkey[requestSenderKey];
+        string memory bidderKey = validPubkey[msg.sender];
+        emit aNewPrice(id, _price, bidderKey);
+    }
+    
+    function assignWithAcceptionOfPrice(string memory _price, uint id) public {
+        require(validAddress[msg.sender] == true, "You haven't registered. ");
+        // require(keccak256(validPubkey[msg.sender]) == keccak256(requestList[id].pubkeyOfSender), "You are not allowed");
+        // string memory requestSenderKey = requestList[id].pubkeyOfSender;
+        // address requestSender = ownerOfPubkey[requestSenderKey];
+        string memory bidderKey = validPubkey[msg.sender];
+        emit aNewPrice(id, _price, bidderKey);
+    }
+
+    function getTasks() public view returns(Request[] memory){
+        return requestList;
     }
 
     function confTransfer(string memory proofForAmt, string memory proofForRemainBalance, string memory sigmaProof, string memory input) public {
-        
+        require(validAddress[msg.sender] == true, "You haven't registered. " );
         requestList.push(Request({
-            sender : msg.sender,
+            pubkeyOfSender : validPubkey[msg.sender],
             id : numberOfRequest,
-            
+            content: "",
             state : State.Processing
         }));
         //// proof : [proofForAmt, proofForRemainBalance, sigmaProof, input],

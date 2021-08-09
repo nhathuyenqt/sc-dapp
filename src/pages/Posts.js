@@ -1,40 +1,20 @@
-import { Component } from 'react';
-import { connect } from 'react-redux';
-import { Link, Route, Switch } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
 import AddPost from '../components/AddPost';
-import SinglePost from '../components/SinglePost';
+import {Typography, Button} from '@material-ui/core'
 import { DataGrid } from '@material-ui/data-grid';
+import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
+import text  from './../contract_address.json';
+import {ethers} from 'ethers'
+import {useState, useEffect} from 'react'
 // import EditPost from '../../pages2/EditPost/EditPost';
 // import SinglePost from '../../pages2/SinglePost/SinglePost';
-
-
-
+const contractAddress = text['contract_address']
 function Posts () {
-    // onCreatePost() {
-    //     // this.props.createPostAction();
-    // }
 
-    // componentDidMount() {
-    //     if (this.props.posts && !this.props.posts.length) {
-    //         this.props.getPostsAction();
-    //     }
-    // }
-
-    // onDeletePost(postId) {
-    //     if (window.confirm('Are you sure you want to delete post?')) {
-    //         this.props.deletePostAction(postId, this.props.history);
-    //     }
-    // }   
-
-
-    const state = {
-        posts : [
-            {title: 'Hello1', description: 'post 1 haa', action : 'Do it', id:0},
-            {title: 'Hello2', description: 'post 2', action : 'Done it', id: 1}
-        ],
-        postTitle: 'Posts List'
-    }
+    const [postList, setPostList] = useState([
+            {title: 'Fix Light', description: 'post 1 haa', action : 'Do it', id:0},
+            {title: 'Fix Door', description: 'post 2', action : 'Done it', id: 1}
+        ])
     
     const columns = [
         { field: 'id', headerName: 'ID', width: 50 },
@@ -65,77 +45,79 @@ function Posts () {
         //     editable: true,
         //   }
       ];
+        setTimeout(()=>{
+          listenEvents()
+        }, 30000);
+      
 
-
-
-        // setTimeout(()=>{
-        //     console.log('Modifying');
-        //     const posts = [...this.state.posts];
-        //     posts[0].title ='Hello ne';
-        //     this.setState({
-        //         posts,
-        //     });
-        // }, 30000);
+      async function loadTasks(){
+        const response = await fetch("/loadTasks", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" }
+        })
+        let result
+        let newPosts = []
+        await response.json().then((message) => {
+          result = message["data"]
+          console.log(result)
+          result.map((task) => {
+            newPosts.push({title: "New Post",
+            description : task['des'],
+            id : task['id']
+            })
+          })
+          setPostList(newPosts)
+        });
         
-        // for (let post of this.props.posts) {
-        //     posts.push(
-        //         <div key={post.id} className=' mt-3 w-1/2'>
-        //             <div className='shadow border p-3 mx-3'>
-        //                 <div>{post.title}</div>
-        //                 <div>{post.description}</div>
-        //                 <div>
-        //                     <Link
-        //                         to={{ pathname: `/posts/${post.id}` }}
-        //                         className='text-purple-500'
-        //                     >
-        //                         View Details
-        //                     </Link>
-        //                 </div>
-        //                 <div>
-        //                     <Link
-        //                         to={{ pathname: `/posts/edit/${post.id}` }}
-        //                         className='text-purple-500'
-        //                     >
-        //                         Edit Details
-        //                     </Link>
-        //                 </div>
-        //                 <div>
-        //                     <button
-        //                         className='text-purple-500'
-        //                         onClick={() => this.onDeletePost(post.id)}
-        //                     >
-        //                         Delete Post
-        //                     </button>
-        //                 </div>
-        //             </div>
-        //         </div>,
-        //     );
-        // }
-        return (
-            <div style={{ height: 400, width: '100%' }}>
-            <DataGrid
-                padding ={10}
-              rows={state.posts}
-              columns={columns}
-              pageSize={5}
-            //   checkboxSelection
-              disableSelectionOnClick
-            />
-          </div>
-            // <div className='flex my-3'>
-            //     {this.state.posts.map((post) => (
-            //         <SinglePost //props ={post}
-            //             key = {post.id}
-            //             title = {post.title}
-            //             description = {post.description}
-            //             id = {post.id}
-            //             />
-            //     ))}
-            //     <div class ='my-5'>
-            //         <AddPost/>
-            //     </div>
-            // </div>
-        );
+        return result
+        
+        // setLoading(false)
+      // const provider = new ethers.providers.Web3Provider(window.ethereum)
+      // const contract = new ethers.Contract(contractAddress, XContract.abi, provider)
+      // const signer =  provider.getSigner()
+      // const [account] = await window.ethereum.request({method: 'eth_requestAccounts'})
+      // const acc = signer.getAddress()
+      // const b = await contract.ElBalanceOf(y)
+      // console.log('address: ', acc)
+      // console.log('balance: ', b.toString())
+      // setBalance(b.toString())
+      // setLoading(false)
+      }
+
+
+      async function listenEvents(){
+
+        if (typeof window.ethereum !== 'undefined'){
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const contract = new ethers.Contract(contractAddress, XContract.abi, provider);
+          contract.on("aNewPrice", (msg) => {
+            console.log("event ", msg);
+          })
+        }
+      }
+
+      useEffect(() => {
+        const tasks = loadTasks()
+        
+        }, [])
+
+
+        
+    
+    return (
+        <div style={{ height: 400, width: '100%' }}>
+        <DataGrid
+            padding ={10}
+          rows={postList}
+          columns={columns}
+          pageSize={5}
+        //   checkboxSelection
+          disableSelectionOnClick
+        />
+        <Button size ="small" color="primary" onClick={loadTasks} > Load Tasks </Button>
+      </div>
+  
+    );
     
 }
 

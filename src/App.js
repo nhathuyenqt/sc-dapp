@@ -15,7 +15,7 @@ function App(props) {
   // const dispatch = useDispatch();
   // const { currentUser } = useAuth()
   useEffect(() => {
-      console.log(props);
+
       // checkAutoLogin(dispatch, props.history);
   }, []);
 

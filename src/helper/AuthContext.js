@@ -16,6 +16,7 @@ export function AuthProvider({ children }) {
   const [currentPass, setCurrentPass] = useState('')
   const [keypair, setKeypair] = useState({x:'', y:''})
   const [uid, setUid] = useState('')
+  const [balance, setBalance] = useState({CL:'', CR:'', b:''})
 
 //   function signup(email, password) {
 //     return auth.createUserWithEmailAndPassword(email, password)
@@ -49,10 +50,8 @@ export function AuthProvider({ children }) {
       // const y_value = result.y;
       // const x_value = result.x;
       setKeypair(result);
-      const balance = message['balance']
-      // console.log("check result key2 ", result);
-      
-      console.log("check key3 ", keypair)
+      console.log(message['balance'])
+      setBalance(message['balance'])
       // setSignKey(message['privateKey']);
       setCurrentBCAccount({address: address, privateKey:message['privateKey']});
     });
@@ -97,6 +96,7 @@ export function AuthProvider({ children }) {
             setCurrentBCAccount({address:'', privateKey:''})
             setKeypair({x:'', y:''})
             setCurrentPass('')
+            setBalance({CL:'', CR:'', b:''})
             //getPubkey
 
           }
@@ -107,6 +107,7 @@ export function AuthProvider({ children }) {
       }else{
         setCurrentBCAccount({address:'', privateKey:''})
         setKeypair({x:'', y:''})
+        setBalance({CL:'', CR:'', b:''})
       }
       setLoading(false)
     })
@@ -121,6 +122,7 @@ export function AuthProvider({ children }) {
     keypair,
     login,
     loading,
+    balance,
     // signup,
     logout,
     // resetPassword,

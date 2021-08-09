@@ -6,8 +6,8 @@ import numpy as np
 import json
 from web3 import Web3, HTTPProvider
 
-# w3 = Web3(HTTPProvider("https://rinkeby.infura.io/v3/6c2c14ab150c43cfb4a59654a7c5bb8c"))
-w3 = Web3(HTTPProvider("http://localhost:8545"))
+w3 = Web3(HTTPProvider("https://rinkeby.infura.io/v3/6c2c14ab150c43cfb4a59654a7c5bb8c"))
+# w3 = Web3(HTTPProvider("http://localhost:8545"))
 print('Connected ', w3.isConnected())
 n = 128
 # global group
