@@ -186,7 +186,7 @@ function SimpleDialog(props) {
 
 
   return (
-    <Dialog aria-labelledby="alert-dialog-title"  onClose={handleClose} open={open}>
+    <Dialog aria-labelledby="alert-dialog-title" fullWidth maxWidth='xs' onClose={handleClose} open={open}>
         <DialogTitle  style={{ backgroundColor: 'navy', color: 'white' }} id="alert-dialog-title">
           Offer a price
         </DialogTitle>
