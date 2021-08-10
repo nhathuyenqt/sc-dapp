@@ -228,6 +228,75 @@ def loadTasks():
     resp.status_code = 200
     return resp
 
+
+@app.route('/sendPrice', methods=['POST'])
+def sendPrice():
+
+    if 'id' in request.get_json():
+        id = request.get_json()['id']
+    if 'user_key' in request.get_json():
+        user_key = request.get_json()['user_key']
+    if 'pubkeyOfRequest' in request.get_json():
+        pubkey = request.get_json()['pubkeyOfRequest']
+    if 'price' in request.get_json():
+        price = request.get_json()['price']
+    
+    price = int(price)
+    print("Pubkey ", pubkey)
+    y = reverse(pubkey)
+    r = group1.random(ZR)
+    CL_price = convert(g**price*y**r)
+    CR_price = convert(g**r)
+    print("raw price ", price," => {}, {}".format(CL_price, CR_price))
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+
+    tx = contract_instance.functions.raiseAPrice(id, CL_price, CR_price).call({'from': user_account.address})
+    # signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
+    # hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    # print("Tx ", hash.hex())
+
+    message = {
+        'status': 200,
+        'message': 'OK',
+    }
+
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
+
+@app.route('/acceptDeal', methods=['POST'])
+def acceptDeal():
+    if 'id' in request.get_json():
+        id = request.get_json()['id']
+    if 'user_key' in request.get_json():
+        user_key = request.get_json()['user_key']
+    if 'pubkeyOfRequest' in request.get_json():
+        pubkey = request.get_json()['pubkeyOfRequest']
+    if 'price' in request.get_json():
+        price = request.get_json()['price']
+
+    price = int(price)
+    y = reverse(pubkey)
+    r = group1.random(ZR)
+    CL_price = convert(g**price*y**r)
+    CR_price = convert(g**r)
+    
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+
+    tx = contract_instance.functions.raiseAPrice(id, CL_price, CR_price).call({'from': user_account.address})
+    # signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
+    # hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    # print("Tx ", hash.hex())
+
+    message = {
+        'status': 200,
+        'message': 'OK',
+    }
+
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
+
 @app.route('/genProof', methods=['POST', 'GET'])
 def genProof():
     # if accId == 1:

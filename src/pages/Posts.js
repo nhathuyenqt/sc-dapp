@@ -1,6 +1,9 @@
 import { bindActionCreators } from 'redux';
 import AddPost from '../components/AddPost';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
 import Dialog from '@material-ui/core/Dialog';
 import {Typography, Button, TextField} from '@material-ui/core'
 import IconButton from '@material-ui/core/IconButton';
@@ -10,37 +13,34 @@ import text  from './../contract_address.json';
 import {ethers} from 'ethers'
 import {useState, useEffect} from 'react'
 import { makeStyles } from '@material-ui/styles';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import ListItemText from '@material-ui/core/ListItemText';
-import PersonIcon from '@material-ui/icons/Person';
 import SendIcon from '@material-ui/icons/Send';
 import Avatar from '@material-ui/core/Avatar';
 // import EditPost from '../../pages2/EditPost/EditPost';
 import PropTypes from 'prop-types';
+import { useAuth } from "../helper/AuthContext"
 // import SinglePost from '../../pages2/SinglePost/SinglePost';
 const contractAddress = text['contract_address']
 
-function Posts () {
-    const [postList, setPostList] = useState([])
+function Posts (props) {
     
+    const [postList, setPostList] = useState([])
     const [open, setOpen] = useState(false);
-    const [selectedValue, setSelectedValue] = useState();
+    const [selectedItem, setSelectedItem] = useState({id:'', description: '', pubkey:''});
+    const [content, setContent] = useState();
     const classes = useStyles();
     const columns = [
-      { field: 'id', headerName: 'ID', width: 68, headerClassName: 'super-app-theme--header' },
+      { field: 'id', headerName: 'ID', width: 68, headerClassName: 'super-app-theme--header'},
       {
         field: 'title',
         headerName: 'Title',
-        width: 200,
+        width: 150,
         headerClassName: 'super-app-theme--header'
       },
       {
         field: 'description',
         headerName: 'Description',
-        width: 450,
-        headerClassName: 'super-app-theme--header'
+        headerClassName: 'super-app-theme--header',
+        flex: 1
       },
       // {
       //     field: 'id',
@@ -60,8 +60,7 @@ function Posts () {
               variant="contained"
               color="primary"
               size="small"
-              onClick={handleClickOpen}
-            >
+              onClick={() => handleClickOpen(params)}>
               Offer a price
             </Button>
           </strong>
@@ -69,18 +68,20 @@ function Posts () {
         disableClickEventBubbling: true,
       }
     ];
+
       setTimeout(()=>{
         listenEvents()
-      }, 30000);
+      }, 5000);
     
-      const handleClickOpen = () => {
-        console.log()
+      const handleClickOpen = (params) => {
+        console.log(params.row);
+        setSelectedItem(params.row)
         setOpen(true);
       };
     
       const handleClose = (value) => {
         setOpen(false);
-        setSelectedValue(value);
+        setSelectedItem(value);
       };
 
     async function loadTasks(){
@@ -95,25 +96,14 @@ function Posts () {
         console.log(result)
         result.map((task) => {
           newPosts.push({id : task[0],
-            description : task[1]
+            description : task[1],
+            pubkey: task[2]
           })
         })
         setPostList(newPosts)
       });
-      
-      return result
-      
-      // setLoading(false)
-    // const provider = new ethers.providers.Web3Provider(window.ethereum)
-    // const contract = new ethers.Contract(contractAddress, XContract.abi, provider)
-    // const signer =  provider.getSigner()
-    // const [account] = await window.ethereum.request({method: 'eth_requestAccounts'})
-    // const acc = signer.getAddress()
-    // const b = await contract.ElBalanceOf(y)
-    // console.log('address: ', acc)
-    // console.log('balance: ', b.toString())
-    // setBalance(b.toString())
-    // setLoading(false)
+      listenEvents()
+      return result      
     }
 
 
@@ -122,14 +112,15 @@ function Posts () {
       if (typeof window.ethereum !== 'undefined'){
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const contract = new ethers.Contract(contractAddress, XContract.abi, provider);
-        contract.on("aNewPrice", (msg) => {
-          console.log("event ", msg);
+        contract.on("NewPrice", (id, CL_price, CR_price) => {
+          console.log("event ", id, CL_price, CR_price);
         })
+        // console.log(contract.events)
+        // await contract.events.NewPrice({}).on("data", (e) => console.log(e));
       }
     }
 
     useEffect(() => {
-      const tasks = loadTasks()
       
       }, [])
 
@@ -145,7 +136,7 @@ function Posts () {
         //   checkboxSelection
           disableSelectionOnClick
         />
-        <SimpleDialog selectedValue={selectedValue} open={open} onClose={handleClose} />
+        <SimpleDialog selectedItem={selectedItem} open={open} onClose={handleClose} content={content}/>
         <Button size ="small" color="primary" onClick={loadTasks} > Load Tasks </Button>
       </div>
   
@@ -162,38 +153,59 @@ const useStyles = makeStyles({
 });
 export default (Posts);
 
-SimpleDialog.propTypes = {
-  onClose: PropTypes.func.isRequired,
-  open: PropTypes.bool.isRequired,
-  selectedValue: PropTypes.string.isRequired,
-};
-
 function SimpleDialog(props) {
   const classes = useStyles();
+  const { currentBCAccount, keypair, loading, balance} = useAuth()
   const [price, setPrice] = useState()
-  const { onClose, selectedValue, open } = props;
+  const { onClose, selectedItem, open} = props;
 
   const handleClose = () => {
-    onClose(selectedValue);
+    onClose(selectedItem);
   };
 
-  const handleListItemClick = (value) => {
-    onClose(value);
+  async function sendPrice (){
+    const response = await fetch("/sendPrice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        'user_key': currentBCAccount.privateKey,
+        'pubkeyOfRequest': selectedItem.pubkey,
+        'price': price,
+        'id': selectedItem.id
+      }),
+    })
+    console.log(selectedItem)
+    let result
+    let newPosts = []
+    await response.json().then((message) => {
+      // result = message["data"]
+      
+    });
   };
+
+
 
   return (
-    <Dialog onClose={handleClose} aria-labelledby="simple-dialog-title" open={open}>
-      <DialogTitle id="simple-dialog-title">Offer a price</DialogTitle>
-        <Typography> </Typography>
-         <TextField onChange={e => setPrice(e.target.value)} placeholder="Price" variant='outlined'
-                  color ="secondary"
-                  className={classes.field}
-                  defaultValue = {price}
-                />
- 
-        <IconButton color="secondary" aria-label="upload picture" component="span">
-              <SendIcon />
-        </IconButton>
+    <Dialog aria-labelledby="alert-dialog-title"  onClose={handleClose} open={open}>
+        <DialogTitle  style={{ backgroundColor: 'navy', color: 'white' }} id="alert-dialog-title">
+          Offer a price
+        </DialogTitle>
+        <DialogContent>
+            <DialogContentText>
+              <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="subtitle1">{selectedItem.description}</Typography>
+            </DialogContentText>
+              <TextField onChange={e => setPrice(e.target.value)} autoFocus
+                        margin="dense"
+                        id="name"
+                        label="Price"
+                        type="number"
+                        fullWidth          />
+        </DialogContent>
+        <DialogActions>
+          <IconButton color="primary" component="span" onClick={sendPrice}>
+                <SendIcon />
+          </IconButton>
+        </DialogActions>
 
     </Dialog>
   );
@@ -202,6 +214,9 @@ function SimpleDialog(props) {
 SimpleDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
-
-  selectedValue: PropTypes.string.isRequired,
+  selectedItem: PropTypes.shape({
+    id: PropTypes.number,
+    description: PropTypes.string.isRequired,
+    pubkey: PropTypes.string.isRequired
+  })
 };

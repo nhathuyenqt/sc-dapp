@@ -14,20 +14,6 @@ contract XContract{
         string CR;
     }
 
-    mapping(address => bool) private validAddress;
-    mapping(address => string) private validPubkey;
-    mapping(string => ElBalance) private encrytedBalance;
-    mapping(string => address) private ownerOfPubkey;
-    
-    address public association;
-    Request[] requestList;
-    // AvailaleRequest[] availaleRequsestList;
-
-    uint numberOfClosedRq;
-    uint numberOfRequest; 
-    // enum State {None, WaitingService, Available, OnWorking, Processing, Assigned, WaitingConfirm, Completed}
-    enum State {None, Processing, Assigned, WaitingPaid, Closed, Cancel}
-
     struct Request{
         
         uint id;
@@ -44,13 +30,30 @@ contract XContract{
         State state; 
     }
 
+    mapping(address => bool) private validAddress;
+    mapping(address => string) validPubkey;
+    mapping(string => ElBalance) private encrytedBalance;
+    mapping(string => address) private ownerOfPubkey;
+    
+    address public association;
+    Request[] requestList;
+    // AvailaleRequest[] availaleRequsestList;
+
+    uint numberOfClosedRq;
+    uint numberOfRequest; 
+    // enum State {None, WaitingService, Available, OnWorking, Processing, Assigned, WaitingConfirm, Completed}
+    enum State {Processing, Assigned, WaitingPaid, Closed, Cancel}
+
+    
+
 
     event InitBalance(string pk);
     event UpdateState(address add, uint balance);
     event NewRequest(uint id, string proof);
     event TestMsg(string newMsg);
     event NewConfTransfer(uint id, string rangeproof1, string rangeproof2, string sigmaProof, string input);
-    event aNewPrice(uint id,string _price, string bidderKey);
+    event NewPrice(uint id, string CL_price, string CR_price);
+    event makeDeal(uint id, string CL_price, string CR_price, string bidderKey);
 
     modifier onlyAdmin() {
       require(msg.sender == association, "You are not authorized.");
@@ -115,26 +118,29 @@ contract XContract{
             content : _task,
             pubkeyOfSender : validPubkey[msg.sender],
             id : numberOfRequest,
-            state : State.None
+            state : State.Processing
         }));
         numberOfRequest +=1;
     }
 
-    function raiseAPrice(string memory _price, uint id) public {
-        require(validAddress[msg.sender] == true, "You haven't registered. ");
+    function raiseAPrice(uint id,string memory CL_price, string memory CR_price) public {
+        require(validAddress[msg.sender] == true, "You haven't registered.");
+        require(requestList[id].state == State.Processing, "The task is no longer available.");
         // string memory requestSenderKey = requestList[id].pubkeyOfSender;
         // address requestSender = ownerOfPubkey[requestSenderKey];
         string memory bidderKey = validPubkey[msg.sender];
-        emit aNewPrice(id, _price, bidderKey);
+        // console.log("new price %d %s %s %s", id, CL_price, CR_price, validPubkey[msg.sender] );
+        emit NewPrice(id, CL_price, CR_price);
     }
     
-    function assignWithAcceptionOfPrice(string memory _price, uint id) public {
+    function assignWithAcceptionOfPrice(uint id,string memory CL_price, string memory CR_price) public {
         require(validAddress[msg.sender] == true, "You haven't registered. ");
         // require(keccak256(validPubkey[msg.sender]) == keccak256(requestList[id].pubkeyOfSender), "You are not allowed");
         // string memory requestSenderKey = requestList[id].pubkeyOfSender;
         // address requestSender = ownerOfPubkey[requestSenderKey];
         string memory bidderKey = validPubkey[msg.sender];
-        emit aNewPrice(id, _price, bidderKey);
+        requestList[id].state == State.Assigned;
+        emit makeDeal(id, CL_price, CR_price, bidderKey);
     }
 
     function getTasks() public view returns(Request[] memory){
