@@ -349,7 +349,7 @@ function Home(props) {
                 </Grid>
               </div>
               {balanceView ?
-              (<Typography variant = "subtitle2" gutterBottom>({balance.CL},{balance.CR}) </Typography>):
+              (<Typography variant = "subtitle2" gutterBottom>({balance.CL} {balance.CR}) </Typography>):
               (<Typography variant = "subtitle2" gutterBottom> {balance.b} </Typography>)}
               <TextField onChange={e => setTo(e.target.value)} placeholder="Recipient Public Key" 
                     variant='outlined'
@@ -379,8 +379,6 @@ function Home(props) {
 
             <CardContent className = {classes.cardContent}>
               <Typography gutterBottom variant = "h5"> New post </Typography>
-         
-        
               <TextField onChange={e => setPost(e.target.value)} placeholder="Task" variant='outlined'
                   fullWidth
                   color ="secondary"

@@ -19,7 +19,7 @@ function Login(props) {
     const emails = ["test1@gmail.com", "test2@gmail.com", "local1@gmail.com"]
     const [errorsObj, setErrorObj]= useState('');
     const [errors, setErrors] = useState(errorsObj);
-    const [infoUser, setInfoUser] = useState({email:"test1@gmail.com", address:"", password:"123456"})
+    const [infoUser, setInfoUser] = useState({email:"", password:""})
     const dispatch = useDispatch();
     
     const {login, loading} = useAuth()
@@ -33,6 +33,7 @@ function Login(props) {
                 setErrorObj('Password is Required');
             }else{
                 try {
+                    console.log(infoUser);
                     await login(infoUser.email, infoUser.password)
                     if (loading === false)
                         history.push("/")
@@ -45,8 +46,10 @@ function Login(props) {
     }
 
     async function handleListItemClick(value){
+        
         setInfoUser({email: value, password:"123456"});
-        handleLogin();
+        // console.log("1  ", infoUser, value);
+        // handleLogin();
       };
     
     
@@ -71,14 +74,14 @@ function Login(props) {
             </div>
         </form>
         <div>
-            {emails.map((email) => (
-          <ListItem button onClick={() => handleListItemClick(email)} key={email}>
+            {emails.map((ev) => (
+          <ListItem button onClick={() => handleListItemClick(ev)} key={ev}>
             <ListItemAvatar>
               <Avatar >
                 <PersonPinCircleRoundedIcon color="secondary" />
               </Avatar>
             </ListItemAvatar>
-            <ListItemText primary={email} />
+            <ListItemText primary={ev} />
           </ListItem>
         ))}
         </div>

@@ -1,5 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
+
 
 import "hardhat/console.sol";
 
@@ -9,9 +10,20 @@ contract XContract{
     uint public totalSupply = 1000000;
     uint public initialSupply = 10000;
     bytes private tempEmptyStringTest = bytes("");
+    enum State {Processing, Assigned, WaitingPaid, Closed, Cancel}
+    enum DealState {Processing, Rejected, Accepted}
+    
     struct ElBalance {
         string CL;
         string CR;
+    }
+
+    struct Deal {
+        uint dealId;
+        ElBalance price;
+        uint requestId;
+        DealState state;
+        string bidder;        
     }
 
     struct Request{
@@ -20,33 +32,33 @@ contract XContract{
         string content;
         string pubkeyOfSender;
         // string[4] proof;
-
         State state;        
     }
 
-    struct AvailableRequest{
-        uint id;
-        string content;
-        State state; 
+    struct TrackingDeal{
+        uint requestId;
+        uint dealId;     
     }
 
     mapping(address => bool) private validAddress;
     mapping(address => string) validPubkey;
     mapping(string => ElBalance) private encrytedBalance;
     mapping(string => address) private ownerOfPubkey;
-    
+    mapping(address => uint[]) private yourRequests;
+    mapping(uint => Deal[]) private offers;
+    mapping(string => string[]) private messages;
+
     address public association;
-    Request[] requestList;
+    Request[] private RequestList;
+    uint [] private availableList;
+    uint [] private notAvailableList;
     // AvailaleRequest[] availaleRequsestList;
 
     uint numberOfClosedRq;
     uint numberOfRequest; 
     // enum State {None, WaitingService, Available, OnWorking, Processing, Assigned, WaitingConfirm, Completed}
-    enum State {Processing, Assigned, WaitingPaid, Closed, Cancel}
-
     
-
-
+   
     event InitBalance(string pk);
     event UpdateState(address add, uint balance);
     event NewRequest(uint id, string proof);
@@ -70,14 +82,9 @@ contract XContract{
     }
 
     function authorizeNewUser(address[] memory newAcc) public onlyAdmin  {
-        
         for(uint i=0; i<newAcc.length; i++){
             validAddress[newAcc[i]] = true;
-            // console.log(newAcc[i]);
         }
-        
-        // console.log( newAcc);
-        
     }
 
     function checkAuthorizeNewUser(address newAcc) public view onlyAdmin returns (bool) {
@@ -99,9 +106,9 @@ contract XContract{
     function initPocket(string calldata y, string calldata cL, string calldata cR) public {
         require(validAddress[msg.sender] == true, "You haven't registered. " );
         validPubkey[msg.sender] = y;
+        ownerOfPubkey[y] = msg.sender;
         encrytedBalance[y] = ElBalance({CL : cL, CR : cR});    
         console.log("sender acc ", encrytedBalance[y].CL, " and ", encrytedBalance[y].CR);
-                 
     }
 
     // function fundToAccount(uint amt, address user) public onlyAS{
@@ -114,49 +121,93 @@ contract XContract{
 
     function postTask(string memory _task) public {
         require(validAddress[msg.sender] == true, "You haven't registered.");
-        requestList.push(Request({
+        RequestList.push(Request({
             content : _task,
             pubkeyOfSender : validPubkey[msg.sender],
             id : numberOfRequest,
             state : State.Processing
         }));
+
+        yourRequests[msg.sender].push(numberOfRequest);
+        availableList.push(numberOfRequest);
         numberOfRequest +=1;
     }
 
-    function raiseAPrice(uint id,string memory CL_price, string memory CR_price) public {
+    function raiseAPrice(uint requestId,string memory CL_price, string memory CR_price) public {
         require(validAddress[msg.sender] == true, "You haven't registered.");
-        require(requestList[id].state == State.Processing, "The task is no longer available.");
-        // string memory requestSenderKey = requestList[id].pubkeyOfSender;
-        // address requestSender = ownerOfPubkey[requestSenderKey];
-        string memory bidderKey = validPubkey[msg.sender];
-        // console.log("new price %d %s %s %s", id, CL_price, CR_price, validPubkey[msg.sender] );
-        emit NewPrice(id, CL_price, CR_price);
+        require(RequestList[requestId].state == State.Processing, "The task is no longer available.");
+        uint dealId = offers[requestId].length;
+
+        offers[requestId].push(Deal({
+            price: ElBalance({CL : CL_price,
+            CR : CR_price}),
+            requestId: requestId,
+            dealId : dealId,
+            state: DealState.Processing,
+            bidder: validPubkey[msg.sender]   
+        }));
+
     }
     
-    function assignWithAcceptionOfPrice(uint id,string memory CL_price, string memory CR_price) public {
-        require(validAddress[msg.sender] == true, "You haven't registered. ");
-        // require(keccak256(validPubkey[msg.sender]) == keccak256(requestList[id].pubkeyOfSender), "You are not allowed");
-        // string memory requestSenderKey = requestList[id].pubkeyOfSender;
-        // address requestSender = ownerOfPubkey[requestSenderKey];
-        string memory bidderKey = validPubkey[msg.sender];
-        requestList[id].state == State.Assigned;
-        emit makeDeal(id, CL_price, CR_price, bidderKey);
+    function loadOffers(uint id) public view returns (Deal[] memory){
+        string memory pk = RequestList[id].pubkeyOfSender;
+        console.log(pk);
+        require(ownerOfPubkey[pk] == msg.sender, "You are not onwer of this task.");
+        return offers[id];
     }
 
-    function getTasks() public view returns(Request[] memory){
-        return requestList;
+    function acceptDeal(uint requestId, uint dealId, string calldata requestId_str) public {
+        require(validAddress[msg.sender] == true, "You haven't registered.");
+        string memory pk = RequestList[requestId].pubkeyOfSender;
+        require(ownerOfPubkey[pk] == msg.sender, "You are not onwer of this task.");
+        require(RequestList[requestId].state == State.Processing, "The task is no longer available.");
+        require(offers[requestId][dealId].state == DealState.Processing, "The deal state is not valid.");
+        string memory m  = string(abi.encodePacked("Your offer for Request ", requestId_str, "is rejected."));
+        for (uint i = 0; i<offers[requestId].length; i++)
+            if (i != dealId){
+            offers[requestId][i].state = DealState.Rejected;
+            messages[offers[requestId][dealId].bidder].push(m);
+        }
+    
+        offers[requestId][dealId].state == DealState.Accepted;
+        m  = string(abi.encodePacked("Your offer for Request ", requestId_str, "is Accepted."));
+        string memory offerSender = offers[requestId][dealId].bidder;
+        messages[offerSender].push(m);
+        RequestList[requestId].state == State.Assigned;
+        // notAvailableList.push(id);
+        for (uint i=0; i<availableList.length; i++)
+            if (availableList[i] == requestId){
+                availableList[i] = availableList[availableList.length-1];
+                availableList.pop();
+                break;
+            }
+    }
+
+    function getAllAvailableTasks() public view returns(Request[] memory){
+        Request[] memory ret = new Request[](availableList.length);
+        for (uint i = 0; i < availableList.length; i++) {
+            ret[i] = RequestList[availableList[i]];
+        }
+        return ret;
+    }
+
+    function getYourTasks() public view returns(Request[] memory){
+        Request[] memory ret = new Request[](yourRequests[msg.sender].length);
+        for (uint i = 0; i < yourRequests[msg.sender].length; i++) {
+            ret[i] = RequestList[yourRequests[msg.sender][i]];
+        }
+        return ret;
     }
 
     function confTransfer(string memory proofForAmt, string memory proofForRemainBalance, string memory sigmaProof, string memory input) public {
         require(validAddress[msg.sender] == true, "You haven't registered. " );
-        requestList.push(Request({
-            pubkeyOfSender : validPubkey[msg.sender],
-            id : numberOfRequest,
-            content: "",
-            state : State.Processing
-        }));
-        //// proof : [proofForAmt, proofForRemainBalance, sigmaProof, input],
-        // emit NewRequest(numberOfRequest, y);
+        // availableList[numberOfRequest] = Request({
+        //     pubkeyOfSender : validPubkey[msg.sender],
+        //     id : numberOfRequest,
+        //     content: "",
+        //     state : State.Closed
+        // });
+        
         console.log("Test Event'");
         emit NewConfTransfer(numberOfRequest, proofForAmt, proofForRemainBalance, sigmaProof, input);
         numberOfRequest += 1;
@@ -169,6 +220,7 @@ contract XContract{
                          
         return validPubkey[msg.sender];
     }
+
     // function transfer(string) external {
     //     require(balances[msg.sender] >= amount, 'Not enough tokens');
     //     balances[msg.sender] -= amount;
@@ -192,9 +244,9 @@ contract XContract{
 
     function confirmProof(uint id, bool res) public{
         if (res == true)
-            requestList[id].state = State.Assigned;
-        else
-            requestList[id].state = State.Cancel;
+            RequestList[id].state = State.Assigned;
+        // else
+            // RequestList[id].state = State.Cancel;
     }   
     
     function balanceOf() external view returns (ElBalance memory){
