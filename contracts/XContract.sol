@@ -169,11 +169,11 @@ contract XContract{
             messages[offers[requestId][dealId].bidder].push(m);
         }
     
-        offers[requestId][dealId].state == DealState.Accepted;
+        offers[requestId][dealId].state = DealState.Accepted;
         m  = string(abi.encodePacked("Your offer for Request ", requestId_str, "is Accepted."));
         string memory offerSender = offers[requestId][dealId].bidder;
         messages[offerSender].push(m);
-        RequestList[requestId].state == State.Assigned;
+        RequestList[requestId].state = State.Assigned;
         // notAvailableList.push(id);
         for (uint i=0; i<availableList.length; i++)
             if (availableList[i] == requestId){

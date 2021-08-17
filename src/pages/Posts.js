@@ -1,4 +1,4 @@
-import { bindActionCreators } from 'redux';
+import xtype from 'xtypejs'
 import AddPost from '../components/AddPost';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogActions from "@material-ui/core/DialogActions";
@@ -31,7 +31,8 @@ function Posts (props) {
     const [open, setOpen] = useState(false);
     const [openOffer, setOpenOffer] = useState(false);
     const [selectedItem, setSelectedItem] = useState({id:'', description: '', pubkey:'', state:''});
-    const [content, setContent] = useState();
+    const [deal, setDeal] = useState();
+    const [minOffer, setMinOffer] = useState();
     const classes = useStyles();
     const State = ['Processing', 'Assigned', 'WaitingPaid', 'Closed', 'Cancel'] ;
     const columns = [
@@ -206,15 +207,19 @@ function Posts (props) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             'user_key': currentBCAccount.privateKey,
-            'id': selectedItem.id
+            'id': selectedItem.id,
+            'x': keypair.x
           }),
         })
         
         let result
         let newPosts = []
         await response.json().then((message) => {
-          // result = message["data"]
-          console.log(message)
+          result = message["min_offer"]
+          let newdeal = result['deal']
+          let raw_price = result['raw_price']
+          setDeal(newdeal)
+          setMinOffer(raw_price)
         });
       setOpenOffer(true);
   }
@@ -261,7 +266,7 @@ function Posts (props) {
                 //   checkboxSelection
                   disableSelectionOnClick
                 />
-                <SimpleDialog selectedItem={selectedItem} open={open} onClose={handleClose} content={content}/>
+                <SimpleDialog selectedItem={selectedItem} open={open} onClose={handleClose}/>
                
               </Grid>
               <Grid item xs={12} style={{height: "42%"}}>
@@ -274,7 +279,7 @@ function Posts (props) {
                 //   checkboxSelection
                   disableSelectionOnClick
                 />
-                <DealDialog selectedItem={selectedItem} open={openOffer} onClose={handleCloseOffer} content={content}/>
+                <DealDialog selectedItem={selectedItem} open={openOffer} onClose={handleCloseOffer} deal={deal} price={minOffer}/>
                 </Grid>
               
           </Grid>
@@ -324,6 +329,7 @@ function SimpleDialog(props) {
       // result = message["data"]
       
     });
+    handleClose()
   };
 
   return (

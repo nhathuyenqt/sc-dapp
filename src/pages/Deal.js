@@ -6,9 +6,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import Dialog from '@material-ui/core/Dialog';
 import {Typography, Button, TextField, Grid} from '@material-ui/core'
-import IconButton from '@material-ui/core/IconButton';
-import { DataGrid } from '@material-ui/data-grid';
-import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
+import xtype from 'xtypejs'
 import text  from './../contract_address.json';
 import {ethers} from 'ethers'
 import {useState, useEffect} from 'react'
@@ -23,10 +21,9 @@ import { useAuth } from "../helper/AuthContext"
 function DealDialog(props) {
     const classes = useStyles();
     const { currentBCAccount} = useAuth()
-    const [price, setPrice] = useState()
     const [offer, setOffer] = useState()
-    const { onClose, selectedItem, open} = props;
-    
+    const { onClose, selectedItem, open, deal, price} = props;
+    console.log(deal);
     useEffect(() => {
         // console.log(selectedItem);
         // loadMinOffer();
@@ -53,41 +50,45 @@ function DealDialog(props) {
           });
     }
 
-    async function sendPrice (){
-      const response = await fetch("/sendPrice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          'user_key': currentBCAccount.privateKey,
-          'pubkeyOfRequest': selectedItem.pubkey,
-          'price': price,
-          'id': selectedItem.id
-        }),
-      })
-      console.log(selectedItem)
-      let result
-      let newPosts = []
-      await response.json().then((message) => {
-        // result = message["data"]
-        
-      });
+    async function acceptDeal (){
+      if (deal != 0 && selectedItem.state == 0){
+        const response = await fetch("/acceptDeal", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            'user_key': currentBCAccount.privateKey,
+            'requestId': deal[2],
+            'dealId': deal[0]
+          }),
+        })
+        console.log(selectedItem)
+        let result
+        let newPosts = []
+        await response.json().then((message) => {
+          // result = message["data"]
+          
+        });
+      }
+      
+      handleClose();
     };
   
     return (
       <Dialog aria-labelledby="alert-dialog-title" fullWidth maxWidth='xs' onClose={handleClose} open={open}>
-          <DialogTitle  style={{ backgroundColor: 'green', color: 'white' }} id="alert-dialog-title">
-            Current min offer price
+          <DialogTitle  style={{ backgroundColor: 'rgba(220, 241, 229, 0.57)', color: 'rgba(9, 91, 11, 0.86)' }} id="alert-dialog-title">
+            <Typography fullWidth margin="dense" variant="h6" >Current Min Offer</Typography>
           </DialogTitle>
           <DialogContent>
               <DialogContentText>
-                <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="subtitle1">{selectedItem.description}</Typography>
-                <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="subtitle1">{price}</Typography>
+                <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="subtitle1">Description: "{selectedItem.description}"</Typography>
+                <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="subtitle1">State: {selectedItem.state}</Typography>
+                <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="subtitle1">Current min offered price: {(deal == 0)? "No offer" : price}</Typography>
+                
                 {/* <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="subtitle1">{bidder}</Typography> */}
               </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button color="primary" size="small" onClick={sendPrice}> Accept </Button>
-         
+            <Button variant="contained"  color='rgba(9, 91, 11, 0.86)' size="small" onClick={acceptDeal}> {(deal == 0 || selectedItem.state !=0) ? "Close" : "Accept"}  </Button>
           </DialogActions>
   
       </Dialog>
@@ -112,6 +113,16 @@ DealDialog.propTypes = {
       id: PropTypes.number,
       description: PropTypes.string.isRequired,
       pubkey: PropTypes.string.isRequired
-    })
+    }),
+    deal: PropTypes.shape({
+        dealId: PropTypes.number,
+        requestId: PropTypes.number,
+        price: PropTypes.shape({
+            CL: PropTypes.string,
+            CR: PropTypes.string
+        }),
+        state: PropTypes.number,
+        bidder: PropTypes.string   
+      })
 };
 export default (DealDialog);

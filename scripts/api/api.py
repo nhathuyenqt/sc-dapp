@@ -283,33 +283,33 @@ def sendPrice():
     resp.status_code = 200
     return resp
 
-def loadOffers(id, user_key):
+def loadOffers(id, user_key, x):
     id = int(id)
     user_account = w3.eth.account.privateKeyToAccount(user_key)
     tx = contract_instance.functions.loadOffers(id).call({'from': user_account.address})
     print(tx)
-
-    # for price in tx:
-        # CL_hex = reverse(CL)
-        # CR_hex = reverse(CR)
-        # b = 0
-        # for i in range(MAX+1):
-        #     if ((CR_hex**x * g**i) == CL_hex):
-        #         b = i
-        #         break
-
-        # print("Raw balance ", b)
-
-    # response = {'b':b, 'CL': CL, 'CR': CR}
-
+    x = reverse(x)
+    min_deal = 0
+    min_price = MAX+1
+    for offer in tx:
+        (CL, CR) = offer[1]
+        CL_hex = reverse(CL)
+        CR_hex = reverse(CR)
+        b = 0
+        for i in range(MAX+1):
+            if ((CR_hex**x * g**i) == CL_hex):
+                b = i
+                break
+        if (b<min_price):
+            min_price = b
+        min_deal = offer
+    
     message = {
-        'status': 200,
-        'message': 'OK',
+        'deal': min_deal,
+        'raw_price': min_price
     }
 
-    resp = jsonify(message)
-    resp.status_code = 200
-    return resp
+    return message
 
 @app.route('/loadMinOffer', methods=['POST'])
 def loadMinOffer():
@@ -318,23 +318,16 @@ def loadMinOffer():
         id = request.get_json()['id']
     if 'user_key' in request.get_json():
         user_key = request.get_json()['user_key']
+    if 'x' in request.get_json():
+        x = request.get_json()['x']
     print("id ", id, " ", type(id))
-    loadOffers(id, user_key)
-    # CL_hex = reverse(CL)
-    # CR_hex = reverse(CR)
-    # b = 0
-    # for i in range(MAX+1):
-    #     if ((CR_hex**x * g**i) == CL_hex):
-    #         b = i
-    #         break
-
-    # print("Raw balance ", b)
-
-    # response = {'b':b, 'CL': CL, 'CR': CR}
+    min_offer = loadOffers(id, user_key, x)
+    
 
     message = {
         'status': 200,
         'message': 'OK',
+        'min_offer' : min_offer
     }
 
     resp = jsonify(message)
@@ -343,27 +336,22 @@ def loadMinOffer():
 
 @app.route('/acceptDeal', methods=['POST'])
 def acceptDeal():
-    if 'id' in request.get_json():
-        id = request.get_json()['id']
+    if 'requestId' in request.get_json():
+        requestId = request.get_json()['requestId']
     if 'user_key' in request.get_json():
         user_key = request.get_json()['user_key']
-    if 'pubkeyOfRequest' in request.get_json():
-        pubkey = request.get_json()['pubkeyOfRequest']
-    if 'price' in request.get_json():
-        price = request.get_json()['price']
-
-    price = int(price)
-    y = reverse(pubkey)
-    r = group1.random(ZR)
-    CL_price = convert(g**price*y**r)
-    CR_price = convert(g**r)
+    if 'dealId' in request.get_json():
+        dealId = request.get_json()['dealId']
     
+    requestId_str = str(requestId)
+
     user_account = w3.eth.account.privateKeyToAccount(user_key)
 
-    tx = contract_instance.functions.raiseAPrice(id, CL_price, CR_price).call({'from': user_account.address})
+    # tx = contract_instance.functions.acceptDeal(requestId, dealId, requestId_str).call({'from': user_account.address})
+    tx = contract_instance.functions.acceptDeal(requestId, dealId, requestId_str).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address), 'from': user_account.address})
     signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    # print("Tx ", hash.hex())
+    print("Tx ", hash.hex())
 
     message = {
         'status': 200,
