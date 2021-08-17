@@ -303,7 +303,8 @@ def loadOffers(id, user_key, x):
         if (b<min_price):
             min_price = b
         min_deal = offer
-    
+    if min_deal == 0:
+        min_deal = None
     message = {
         'deal': min_deal,
         'raw_price': min_price
@@ -352,6 +353,29 @@ def acceptDeal():
     signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print("Tx ", hash.hex())
+
+    message = {
+        'status': 200,
+        'message': 'OK',
+    }
+
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
+
+@app.route('/getMessages', methods=['POST'])
+def getMessages():
+
+    if 'user_key' in request.get_json():
+        user_key = request.get_json()['user_key']
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+
+    # tx = contract_instance.functions.acceptDeal(requestId, dealId, requestId_str).call({'from': user_account.address})
+    tx = contract_instance.functions.getMessages().call({'from': user_account.address})
+
+    print("Tx ", tx)
 
     message = {
         'status': 200,

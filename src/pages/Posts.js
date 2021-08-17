@@ -16,7 +16,8 @@ import { makeStyles } from '@material-ui/styles';
 import { green } from '@material-ui/core/colors';
 import SendIcon from '@material-ui/icons/Send';
 import VisibilityIcon from '@material-ui/icons/Visibility';
-import DealDialog from './Deal';
+import DealDialog from './components/Deal';
+import NewPostDialog from './components/NewPost';
 import Avatar from '@material-ui/core/Avatar';
 // import EditPost from '../../pages2/EditPost/EditPost';
 import PropTypes from 'prop-types';
@@ -30,6 +31,7 @@ function Posts (props) {
     const [yourPostList, setYourPostList] = useState([])
     const [open, setOpen] = useState(false);
     const [openOffer, setOpenOffer] = useState(false);
+    const [openNewPost, setOpenNewPost] = useState(false);
     const [selectedItem, setSelectedItem] = useState({id:'', description: '', pubkey:'', state:''});
     const [deal, setDeal] = useState();
     const [minOffer, setMinOffer] = useState();
@@ -70,7 +72,7 @@ function Posts (props) {
     ];
 
     const columns2 = [
-      { field: 'id', headerName: 'ID', width: 68, headerClassName: 'super-app-theme--Filled'},
+      { field: 'id', headerName: 'ID', width: 68, headerClassName: 'super-app-theme--Filled', sortDescendingFirst : true},
       {
         field: 'description',
         headerName: 'Description',
@@ -122,32 +124,40 @@ function Posts (props) {
       }
     ];
 
-      setTimeout(()=>{
-        listenEvents()
-      }, 5000);
-      
-      const handleClickLoad = (params) => {
-        console.log(params.row);
-        setSelectedItem(params.row)
-        loadMinOffer();
-        
-      };
-
-      const handleCloseOffer = (value) => {
-        setOpenOffer(false);
-        setSelectedItem(value);
-      };
-
-      const handleClickOpen = (params) => {
-        console.log(params.row);
-        setSelectedItem(params.row)
-        setOpen(true);
-      };
+    setTimeout(()=>{
+      listenEvents()
+    }, 5000);
     
-      const handleClose = (value) => {
-        setOpen(false);
-        setSelectedItem(value);
-      };
+    const handleClickLoad = (params) => {
+      console.log(params.row);
+      setSelectedItem(params.row)
+      loadMinOffer();
+      
+    };
+
+    const handleCloseOffer = (value) => {
+      setOpenOffer(false);
+      setSelectedItem(value);
+      reload();
+    };
+    const handleClickOpen = (params) => {
+      console.log(params.row);
+      setSelectedItem(params.row)
+      setOpen(true);
+    };
+  
+    const handleClose = (value) => {
+      setOpen(false);
+      setSelectedItem(value);
+    };
+
+    const handlePost = () => {
+      setOpenNewPost(true);
+    };
+    const handleCloseNewPost = () => {
+      setOpenNewPost(false);
+      reload()
+    };
 
     async function loadTasks(){
       console.log("key ", currentBCAccount.privateKey)
@@ -248,17 +258,19 @@ function Posts (props) {
       loadTasks();
       loadYourTasks();
     }
-      
+    
+    
 
     
     return (
         <div style={{ height: '800px',  marginLeft: 100, marginRight: 20}} className={classes.root}>
           <Grid container align-items="center" style={{width: '100%',height: "100%" }}>
               <Grid item xs style={{display: 'flex', alignItems: 'center', justifyContent: 'right'}}>
+                <Button size ="small" variant="outlined" color="primary" style={{margin: '10px' }} onClick={handlePost} > ADD POST </Button>
                 <Button size ="small" variant="outlined" color="primary" onClick={reload} > RELOAD </Button>
               </Grid>
               <Grid item xs={12} style={{height: "42%"}}>
-              <Typography variant="h5" align="center" component="h1" color="secondary"> ALL AVAILABLE TASKS </Typography>
+              <Typography variant="h5" align="center" component="h2" color="secondary"> ALL AVAILABLE TASKS </Typography>
                 <DataGrid
                   rows={postList}
                   columns={columns}
@@ -270,9 +282,9 @@ function Posts (props) {
                
               </Grid>
               <Grid item xs={12} style={{height: "42%"}}>
-                <Typography variant="h6" align="center" component="h1" color='textPrimary' > YOUR POSTING </Typography>
+                <Typography variant="h6" align="center" component="h2" color='textPrimary' > YOUR POSTING </Typography>
                 <DataGrid
-                  
+
                   rows={yourPostList}
                   columns={columns2}
                   pageSize={8}
@@ -280,9 +292,10 @@ function Posts (props) {
                   disableSelectionOnClick
                 />
                 <DealDialog selectedItem={selectedItem} open={openOffer} onClose={handleCloseOffer} deal={deal} price={minOffer}/>
-                </Grid>
+              </Grid>
               
           </Grid>
+          <NewPostDialog open={openNewPost} onClose={handleCloseNewPost}/>
       </div>
   
     );

@@ -221,6 +221,12 @@ contract XContract{
         return validPubkey[msg.sender];
     }
 
+    function getMessages() public view returns (string[] memory){
+        require(validAddress[msg.sender] == true, "You haven't registered.");
+        string memory pk = validPubkey[msg.sender];
+        return messages[pk];
+    }
+
     // function transfer(string) external {
     //     require(balances[msg.sender] >= amount, 'Not enough tokens');
     //     balances[msg.sender] -= amount;
