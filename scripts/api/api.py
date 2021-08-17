@@ -178,7 +178,7 @@ def getElBalance():
     message = {
         'status': 200,
         'message': 'OK',
-        'data': b['b']
+        'balance': b
     }
 
     resp = jsonify(message)
@@ -379,7 +379,7 @@ def getMessages():
 
     message = {
         'status': 200,
-        'message': 'OK',
+        'message': tx
     }
 
     resp = jsonify(message)

@@ -8,6 +8,7 @@ import PrivateRoute from "./components/PrivateRoute"
 import Login from './pages/Login';
 import Main from './pages/Main';
 import { useState, useEffect, Suspense} from 'react';
+import QRscan from './pages/components/QRscanner'
 import './pages/Login.css';
 
 
@@ -26,6 +27,9 @@ function App(props) {
               <Switch>
                 <Route path='/login' exact component={Login} /> 
                 <PrivateRoute exact path="/" component={Main} />
+                <Route path="/qr_scanner">
+                  <QRscan/>
+                </Route>
               </Switch> 
             </AuthProvider>
           </Router>

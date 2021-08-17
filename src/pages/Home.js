@@ -1,44 +1,42 @@
 import React from 'react';
 
 import {Typography, Button, Card,  CircularProgress, Container, CardActions, Grid, CardContent, TextField} from '@material-ui/core'
+import { Link } from "react-router-dom";
 import QRCode from "react-qr-code";
 import  useStyles  from './Styles.js';
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useRef} from 'react'
 import {ethers} from 'ethers'
 import xtype from 'xtypejs'
 import text  from './../contract_address.json';
 import { useAuth } from "../helper/AuthContext"
 import Switch from '@material-ui/core/Switch';
 import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
+import { ScannerOutlined } from '@material-ui/icons';
+import QRscanner from './components/QRscanner.js';
 
 
 const contractAddress = text['contract_address']
 
 function Home(props) {
   // const history = useHistory();
+  
 
-
-  const { currentBCAccount, keypair, loading, balance} = useAuth()
+  const { currentBCAccount, keypair, loading, balance, setBalance} = useAuth()
 
   const classes = useStyles()
 
   const [greeting, setGreetingValue] = useState('')
   const [amount, setAmount] = useState()
-  const [recipient, setTo] = useState()
+  const [recipient, setRecipient] = useState()
   const [post, setPost] = useState("")
   const [balanceView, setBalanceView] = useState(true);
+  const [scan, setScan] = useState(false);
+  
 
+  useEffect(() => {
 
-  // useEffect(() => {
-  //   requestAccount()
-  // });
-  if (window.ethereum){
-    window.ethereum.on('accountsChanged', function(accounts){
+  });
  
-
-    })
-  }
-
   // async function updateStateEventListener(callback) {
   //   await requestAccount()
   //   const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -122,22 +120,30 @@ function Home(props) {
     }
   }
 
-  async function genProof() {
-    const response = await fetch("/genProof", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amt: amount,
-      }),
-    })
-    let result
-    await response.json().then((message) => {
-      result = JSON.stringify(message["data"]);
+  const handleClickScan = () => {
+    setScan(true);
+  };
+
+  const handleCloseScan = () => {
+    setScan(false);
+  };
+
+  // async function genProof() {
+  //   const response = await fetch("/genProof", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({
+  //       amt: amount,
+  //     }),
+  //   })
+  //   let result
+  //   await response.json().then((message) => {
+  //     result = JSON.stringify(message["data"]);
      
-      console.log(result) 
-    });
-    return result
-  }
+  //     console.log(result) 
+  //   });
+  //   return result
+  // }
 
   async function getElBalance(){
 
@@ -150,6 +156,12 @@ function Home(props) {
           'user_key':currentBCAccount.privateKey
         }),
       })
+
+      await response.json().then((message) => {
+        message = message['balance']
+        console.log(message)
+        setBalance(message)
+      });
       // setLoading(false)
       // const provider = new ethers.providers.Web3Provider(window.ethereum)
       // const contract = new ethers.Contract(contractAddress, XContract.abi, provider)
@@ -242,6 +254,7 @@ function Home(props) {
     }
   }
   
+
   async function sendCoins(){
     var messageProof
     if (typeof window.ethereum !== 'undefined'){
@@ -278,6 +291,8 @@ function Home(props) {
       });
     }
   }
+
+
 
   return (
     loading == true ? (<CircularProgress size={24} className={classes.buttonProgress} />) : (
@@ -349,12 +364,13 @@ function Home(props) {
               {balanceView ?
               (<Typography variant = "subtitle2" gutterBottom>({balance.CL} {balance.CR}) </Typography>):
               (<Typography variant = "subtitle2" gutterBottom> {balance.b} </Typography>)}
-              <TextField onChange={e => setTo(e.target.value)} placeholder="Recipient Public Key" 
+              <TextField onChange={e => setRecipient(e.target.value)} placeholder="Recipient Public Key" 
                     variant='outlined'
                     fullWidth
                     color ="secondary"
-                    // defaultValue = {recipient}
+                    value = {recipient}
                     className={classes.field}/>
+              
               <TextField onChange={e => setAmount(e.target.value)} placeholder="Amount" variant='outlined'
                   fullWidth
                   color ="secondary"
@@ -363,6 +379,7 @@ function Home(props) {
                 /> 
             </CardContent>
             <CardActions>
+              <Button size ="small" color="primary" onClick={handleClickScan} >Scan Recipient</Button>
               <Button size ="small" color="primary" onClick={getElBalance} >Get El Balance</Button>
               <Button size ="small" color="primary" onClick={confTransfer} >Conf Transfer</Button>
             </CardActions>
@@ -388,8 +405,11 @@ function Home(props) {
               <Button size ="small" color="primary" onClick={newPost} >Post new task</Button>
             </CardActions>
           </Card>
+          
           </Grid>
+          
         </Grid>
+        <QRscanner open={scan} onClose={handleCloseScan} setData = {setRecipient}/>
       </Container>
     </div>)
   );

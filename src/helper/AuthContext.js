@@ -79,6 +79,7 @@ export function AuthProvider({ children }) {
 
 
   useEffect(() => {
+    
     const unsubscribe = auth.onAuthStateChanged(user => {
       setLoading(true);
       setCurrentUser(user)
@@ -111,7 +112,7 @@ export function AuthProvider({ children }) {
       }
       setLoading(false)
     })
-
+      
       return unsubscribe
     }, [])
 
@@ -124,6 +125,8 @@ export function AuthProvider({ children }) {
     loading,
     balance,
     // signup,
+    setBalance,
+
     logout,
     // resetPassword,
     // updateEmail,

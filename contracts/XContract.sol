@@ -162,7 +162,7 @@ contract XContract{
         require(ownerOfPubkey[pk] == msg.sender, "You are not onwer of this task.");
         require(RequestList[requestId].state == State.Processing, "The task is no longer available.");
         require(offers[requestId][dealId].state == DealState.Processing, "The deal state is not valid.");
-        string memory m  = string(abi.encodePacked("Your offer for Request ", requestId_str, "is rejected."));
+        string memory m  = string(abi.encodePacked("Your offer for Request ", requestId_str, " was rejected."));
         for (uint i = 0; i<offers[requestId].length; i++)
             if (i != dealId){
             offers[requestId][i].state = DealState.Rejected;
@@ -170,7 +170,7 @@ contract XContract{
         }
     
         offers[requestId][dealId].state = DealState.Accepted;
-        m  = string(abi.encodePacked("Your offer for Request ", requestId_str, "is Accepted."));
+        m  = string(abi.encodePacked("Your offer for Request ", requestId_str, " was Accepted."));
         string memory offerSender = offers[requestId][dealId].bidder;
         messages[offerSender].push(m);
         RequestList[requestId].state = State.Assigned;

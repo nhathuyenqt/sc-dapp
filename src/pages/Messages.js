@@ -27,14 +27,7 @@ const contractAddress = text['contract_address']
 
 function Messages (props) {
     const { currentBCAccount, keypair, loading, balance} = useAuth()
-    const [postList, setPostList] = useState([])
-    const [yourPostList, setYourPostList] = useState([])
-    const [open, setOpen] = useState(false);
-    const [openOffer, setOpenOffer] = useState(false);
-    const [openNewPost, setOpenNewPost] = useState(false);
-    const [selectedItem, setSelectedItem] = useState({id:'', description: '', pubkey:'', state:''});
-    const [deal, setDeal] = useState();
-    const [minOffer, setMinOffer] = useState();
+    const [msgList, setMsgList] = useState([]);
     const classes = useStyles();
     const State = ['Processing', 'Assigned', 'WaitingPaid', 'Closed', 'Cancel'] ;
     const columns = [
@@ -43,7 +36,8 @@ function Messages (props) {
         field: 'content',
         headerName: 'Content',
         headerClassName: 'super-app-theme--header',
-        flex: 1
+        flex: 1,
+        color: 'white'
       },
       {
         field: 'action',
@@ -53,9 +47,10 @@ function Messages (props) {
           <strong>
 
             <Button
-              variant="outlined" color="secondary"
+              variant="outlined" color="primary"
               size="small"
-              onClick={() => handleClickOpen(params)}>
+              // onClick={() => handleClickOpen(params)}
+              >
               Offer a price
             </Button>
           </strong>
@@ -68,50 +63,7 @@ function Messages (props) {
       listenEvents()
     }, 5000);
     
-    const handleClickLoad = (params) => {
-      console.log(params.row);
-      setSelectedItem(params.row)
-      loadMinOffer();
-      
-    };
-    const handleClose = (value) => {
-      setOpen(false);
-      setSelectedItem(value);
-    };
 
-    const handlePost = () => {
-      setOpenNewPost(true);
-    };
-    const handleCloseNewPost = () => {
-      setOpenNewPost(false);
-      reload()
-    };
-
-    async function loadTasks(){
-      console.log("key ", currentBCAccount.privateKey)
-      const response = await fetch("/loadTasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          'user_key': currentBCAccount.privateKey
-        })
-      })
-      let result
-      let newPosts = []
-      await response.json().then((message) => {
-        result = message["data"]
-        console.log(result)
-        result.map((task) => {
-          newPosts.push({id : task[0],
-            description : task[1],
-            pubkey: task[2]
-          })
-        })
-        setPostList(newPosts)
-      });
-      await listenEvents()
-      return result      
-    }
 
     async function loadYourTasks(){
       const response = await fetch("/loadYourTasks", {
@@ -133,33 +85,34 @@ function Messages (props) {
             state: State[task[3]]
           })
         })
-        setYourPostList(newYourPosts)
       });
       await listenEvents()
       return result      
     }
 
-    async function loadMinOffer(){
-      const response = await fetch("/loadMinOffer", {
+    async function loadMessages(){
+      const response = await fetch("/getMessages", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             'user_key': currentBCAccount.privateKey,
-            'id': selectedItem.id,
-            'x': keypair.x
           }),
         })
         
         let result
-        let newPosts = []
+        let newMsgs = []
         await response.json().then((message) => {
-          result = message["min_offer"]
-          let newdeal = result['deal']
-          let raw_price = result['raw_price']
-          setDeal(newdeal)
-          setMinOffer(raw_price)
+            message = message['message']
+            console.log(message)
+            message.map((msg, i) => {
+              newMsgs.push({
+                id : i,
+                content : msg
+            })
+          })
+          setMsgList(newMsgs)
         });
-      setOpenOffer(true);
+
   }
 
 
@@ -178,13 +131,11 @@ function Messages (props) {
     }
 
     useEffect(() => {
-      loadTasks();
-      loadYourTasks();
+      loadMessages();
       }, [])
   
     async function reload(){
-      loadTasks();
-      loadYourTasks();
+      loadMessages();
     }
     
     
@@ -193,25 +144,19 @@ function Messages (props) {
     return (
         <div style={{ height: '800px',  marginLeft: 100, marginRight: 20}} className={classes.root}>
           <Grid container align-items="center" style={{width: '100%',height: "100%" }}>
-              <Grid item xs style={{display: 'flex', alignItems: 'center', justifyContent: 'right'}}>
-                <Button size ="small" variant="outlined" color="primary" style={{margin: '10px' }} onClick={handlePost} > ADD POST </Button>
+              <Grid item xs align-items="right" style={{display: 'flex', alignItems: 'center', justifyContent: 'right'}}>
                 <Button size ="small" variant="outlined" color="primary" onClick={reload} > RELOAD </Button>
               </Grid>
-              <Grid item xs={12} style={{height: "42%"}}>
-                <Typography variant="h5" align="center" component="h1" color="secondary"> ALL AVAILABLE TASKS </Typography>
-                    <DataGrid
-                    rows={postList}
-                    columns={columns}
-                    pageSize={8}
-                    //   checkboxSelection
-                    disableSelectionOnClick
-                    />
-                <SimpleDialog selectedItem={selectedItem} open={open} onClose={handleClose}/>
+              <Grid item xs={12} style={{width: '100%', height: "90%" }}>
+                  <DataGrid
+                  rows={msgList}
+                  columns={columns}
+                  pageSize={8}
+                  //   checkboxSelection
+                  disableSelectionOnClick/>
               </Grid>
           </Grid>
-          <NewPostDialog open={openNewPost} onClose={handleCloseNewPost}/>
       </div>
-  
     );
     
 }
@@ -219,10 +164,10 @@ function Messages (props) {
 const useStyles = makeStyles({
   root: {
     '& .super-app-theme--header': {
-      backgroundColor: 'rgba(255, 7, 0, 0.55)',
-    },
-    '& .super-app-theme--Filled': {
-      backgroundColor: 'rgba(114, 209, 18, 1)',
+      backgroundColor: '#3b5998',
+      color:'white',
+      fontFamily: "Comic Sans MS",
+      textTransform: 'capitalize'
     }
   }
 });

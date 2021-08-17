@@ -18,11 +18,8 @@ import SendIcon from '@material-ui/icons/Send';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import DealDialog from './components/Deal';
 import NewPostDialog from './components/NewPost';
-import Avatar from '@material-ui/core/Avatar';
-// import EditPost from '../../pages2/EditPost/EditPost';
 import PropTypes from 'prop-types';
 import { useAuth } from "../helper/AuthContext"
-// import SinglePost from '../../pages2/SinglePost/SinglePost';
 const contractAddress = text['contract_address']
 
 function Posts (props) {
@@ -270,7 +267,7 @@ function Posts (props) {
                 <Button size ="small" variant="outlined" color="primary" onClick={reload} > RELOAD </Button>
               </Grid>
               <Grid item xs={12} style={{height: "42%"}}>
-              <Typography variant="h5" align="center" component="h2" color="secondary"> ALL AVAILABLE TASKS </Typography>
+              <Typography variant="h5" align="center" component="h2" style={{ color: "#ab3402" }}> ALL AVAILABLE TASKS </Typography>
                 <DataGrid
                   rows={postList}
                   columns={columns}
@@ -282,7 +279,7 @@ function Posts (props) {
                
               </Grid>
               <Grid item xs={12} style={{height: "42%"}}>
-                <Typography variant="h6" align="center" component="h2" color='textPrimary' > YOUR POSTING </Typography>
+                <Typography variant="h6" align="center" component="h2" color='textPrimary' style={{ marginTop: '10px'}} > YOUR POSTING </Typography>
                 <DataGrid
 
                   rows={yourPostList}
@@ -305,10 +302,14 @@ function Posts (props) {
 const useStyles = makeStyles({
   root: {
     '& .super-app-theme--header': {
-      backgroundColor: 'rgba(255, 7, 0, 0.55)',
+      backgroundColor: '#ab3402',
+      color:'white',
     },
     '& .super-app-theme--Filled': {
-      backgroundColor: 'rgba(114, 209, 18, 1)',
+      backgroundColor: '#094a14',
+      color:'white',
+      fontFamily: 'Vazir',
+      fontWeight: 'bold'
     }
   }
 });

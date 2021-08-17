@@ -16,7 +16,7 @@ import './Login.css';
 
 function Login(props) {
     
-    const emails = ["test1@gmail.com", "test2@gmail.com", "local1@gmail.com"]
+    const emails = ["test1@gmail.com", "test2@gmail.com", "local1@gmail.com", "local2@test.com", "rinkeby1@test.com"]
     const [errorsObj, setErrorObj]= useState('');
     const [errors, setErrors] = useState(errorsObj);
     const [infoUser, setInfoUser] = useState({email:"", password:""})
