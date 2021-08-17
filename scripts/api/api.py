@@ -210,9 +210,14 @@ def newPost():
     resp.status_code = 200
     return resp
 
-@app.route('/loadTasks', methods=['GET'])
+@app.route('/loadTasks', methods=['POST'])
 def loadTasks():
-    tx = contract_instance.functions.getTasks().call()
+    print(request.get_json())
+    if 'user_key' in request.get_json():
+        user_key = request.get_json()['user_key']
+
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+    tx = contract_instance.functions.getAllAvailableTasks().call({'from': user_account.address})
     print(tx)
     # tasks = []
     # for task in tx:
@@ -228,63 +233,192 @@ def loadTasks():
     resp.status_code = 200
     return resp
 
-@app.route('/genProof', methods=['POST', 'GET'])
-def genProof():
-    # if accId == 1:
-    #     acc_address = acc_address1
-    #     key = key1
-    # else:
-    #     acc_address = acc_address0
-    #     key = key0
-    # if 'address' in request.args:
-    #     add = request.args.get('address')
-    #     pwd = request.args.get('pwd')
+@app.route('/loadYourTasks', methods=['POST'])
+def loadYourTasks():
+    if 'user_key' in request.get_json():
+        user_key = request.get_json()['user_key']
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+    tx = contract_instance.functions.getYourTasks().call({'from': user_account.address})
+    message = {
+        'status': 200,
+        'message': 'OK',
+        'data' : tx
+    }
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
 
-    prover = Prover()
-    p, c = prover.prove(200)
-    
-    c.x = convert(c.x)
-    c.y = convert(c.y)
-    c.z = convert(c.z)
-    c.g = convert(c.g)
-    c.h = convert(c.h)
-    c.g_vec = convert(c.g_vec)
-    c.h_vec = convert(c.h_vec)
-    challenge = {'x': c.x,'y': c.y, 'z' : c.z,'g':c.g, 'h': c.h, 'g_vec':c.g_vec, 'h_vec': c.h_vec}
-    
-    proof =  {
-        'gama': convert(p.gama),
-        'taux': convert(p.taux), 'muy': convert(p.muy),
-        't' : convert(p.t),
-        'l' : convert(p.l),
-        'r' : convert(p.r),
-        'A' : convert(p.A),
-        'S' : convert(p.S),
-        'T1' : convert(p.T1),
-        'T2' : convert(p.T2),
-        'V' : convert(p.V),
-        'sigma' : convert(p.sigma)}
-    # res_json = json.loads(json.dumps(res))
+@app.route('/sendPrice', methods=['POST'])
+def sendPrice():
 
-    proofsend = json.dumps(proof)
-    tx = contract_instance.functions.privateTransfer(proofsend).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address0)})
-    signed_tx = w3.eth.account.signTransaction(tx, key0)
+    if 'id' in request.get_json():
+        id = request.get_json()['id']
+    if 'user_key' in request.get_json():
+        user_key = request.get_json()['user_key']
+    if 'pubkeyOfRequest' in request.get_json():
+        pubkey = request.get_json()['pubkeyOfRequest']
+    if 'price' in request.get_json():
+        price = request.get_json()['price']
+    
+    price = int(price)
+    print("Pubkey ", pubkey)
+    y = reverse(pubkey)
+    r = group1.random(ZR)
+    CL_price = convert(g**price*y**r)
+    CR_price = convert(g**r)
+    print("raw price ", price," => {}, {}".format(CL_price, CR_price))
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+
+    tx = contract_instance.functions.raiseAPrice(id, CL_price, CR_price).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address), 'from': user_account.address})
+    signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    print("private transfer ", hash.hex())
-
+    print("Tx ", hash.hex())
 
     message = {
         'status': 200,
         'message': 'OK',
-        'data': {
-            'challenge':challenge,
-            'proof' : proof
-        }
     }
+
     resp = jsonify(message)
     resp.status_code = 200
-    print("=>>>>>>> hello: " , type(resp))
     return resp
+
+def loadOffers(id, user_key, x):
+    id = int(id)
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+    tx = contract_instance.functions.loadOffers(id).call({'from': user_account.address})
+    print(tx)
+    x = reverse(x)
+    min_deal = 0
+    min_price = MAX+1
+    for offer in tx:
+        (CL, CR) = offer[1]
+        CL_hex = reverse(CL)
+        CR_hex = reverse(CR)
+        b = 0
+        for i in range(MAX+1):
+            if ((CR_hex**x * g**i) == CL_hex):
+                b = i
+                break
+        if (b<min_price):
+            min_price = b
+        min_deal = offer
+    
+    message = {
+        'deal': min_deal,
+        'raw_price': min_price
+    }
+
+    return message
+
+@app.route('/loadMinOffer', methods=['POST'])
+def loadMinOffer():
+
+    if 'id' in request.get_json():
+        id = request.get_json()['id']
+    if 'user_key' in request.get_json():
+        user_key = request.get_json()['user_key']
+    if 'x' in request.get_json():
+        x = request.get_json()['x']
+    print("id ", id, " ", type(id))
+    min_offer = loadOffers(id, user_key, x)
+    
+
+    message = {
+        'status': 200,
+        'message': 'OK',
+        'min_offer' : min_offer
+    }
+
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
+
+@app.route('/acceptDeal', methods=['POST'])
+def acceptDeal():
+    if 'requestId' in request.get_json():
+        requestId = request.get_json()['requestId']
+    if 'user_key' in request.get_json():
+        user_key = request.get_json()['user_key']
+    if 'dealId' in request.get_json():
+        dealId = request.get_json()['dealId']
+    
+    requestId_str = str(requestId)
+
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+
+    # tx = contract_instance.functions.acceptDeal(requestId, dealId, requestId_str).call({'from': user_account.address})
+    tx = contract_instance.functions.acceptDeal(requestId, dealId, requestId_str).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address), 'from': user_account.address})
+    signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
+    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    print("Tx ", hash.hex())
+
+    message = {
+        'status': 200,
+        'message': 'OK',
+    }
+
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
+
+# @app.route('/genProof', methods=['POST', 'GET'])
+# def genProof():
+#     # if accId == 1:
+#     #     acc_address = acc_address1
+#     #     key = key1
+#     # else:
+#     #     acc_address = acc_address0
+#     #     key = key0
+#     # if 'address' in request.args:
+#     #     add = request.args.get('address')
+#     #     pwd = request.args.get('pwd')
+
+#     prover = Prover()
+#     p, c = prover.prove(200)
+    
+#     c.x = convert(c.x)
+#     c.y = convert(c.y)
+#     c.z = convert(c.z)
+#     c.g = convert(c.g)
+#     c.h = convert(c.h)
+#     c.g_vec = convert(c.g_vec)
+#     c.h_vec = convert(c.h_vec)
+#     challenge = {'x': c.x,'y': c.y, 'z' : c.z,'g':c.g, 'h': c.h, 'g_vec':c.g_vec, 'h_vec': c.h_vec}
+    
+#     proof =  {
+#         'gama': convert(p.gama),
+#         'taux': convert(p.taux), 'muy': convert(p.muy),
+#         't' : convert(p.t),
+#         'l' : convert(p.l),
+#         'r' : convert(p.r),
+#         'A' : convert(p.A),
+#         'S' : convert(p.S),
+#         'T1' : convert(p.T1),
+#         'T2' : convert(p.T2),
+#         'V' : convert(p.V),
+#         'sigma' : convert(p.sigma)}
+#     # res_json = json.loads(json.dumps(res))
+
+#     proofsend = json.dumps(proof)
+#     tx = contract_instance.functions.privateTransfer(proofsend).buildTransaction({'nonce': w3.eth.getTransactionCount(acc_address0)})
+#     signed_tx = w3.eth.account.signTransaction(tx, key0)
+#     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+#     print("private transfer ", hash.hex())
+
+
+#     message = {
+#         'status': 200,
+#         'message': 'OK',
+#         'data': {
+#             'challenge':challenge,
+#             'proof' : proof
+#         }
+#     }
+#     resp = jsonify(message)
+#     resp.status_code = 200
+#     print("=>>>>>>> hello: " , type(resp))
+#     return resp
 
 
 def convertProofToJSON(p, c):
@@ -382,7 +516,7 @@ def genConfProof():
     pr1  = json.dumps(rangeProofForAmt)
     pr2 = json.dumps(rangeProofForRemainBalance)
     pr3 = json.dumps(sigmaProof)
-    input = json.dumps(input)
+    input = json.dumps(input) 
     gas = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).estimateGas()
     print("gas ", gas)
     tx = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address), 'gas': gas})
