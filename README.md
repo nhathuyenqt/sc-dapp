@@ -6,6 +6,20 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 
+### `npx hardhat run scripts/deploy.js --network rinkeby`
+
+To deploy smart contract to rinkeby network
+
+### `python3 scripts/for_admin.py`
+
+To authorize addresses to join smart contract functions
+
+### `npm run start-api`
+
+
+### `npm start`
+
+
 ### `yarn start`
 
 Runs the app in the development mode.\

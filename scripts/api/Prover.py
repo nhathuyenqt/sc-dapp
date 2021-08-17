@@ -83,23 +83,11 @@ class Prover:
 
         v = inner_product(self.a_L, bin_vec)
         self.V = (self.h**gama)*(self.g**v)
-        # print("------------- check dk vao --------\n 1 . v =  ",v, "  self.v ",self.v)
-        # print(inner_product(self.a_L, hadamard_product(self.a_R, y_vec))) 
-        # print(inner_product(subtract(subtract(self.a_L, uni_vec), self.a_R),y_vec))    
+ 
         i1 = inner_product(uni_vec, y_vec)
         i2 = inner_product(uni_vec, bin_vec)
         sigma = (z-z*z)*i1 - z*z*z*i2
-        # print("sigma ", sig)
-        # t0 = z*z*v + sig
-        # print("\nt0-1")
-        # print(t0)
-        
-        # print("\nt0-2")
-        # print(t0)     
-        # t3 = inner_product(subtract(self.a_L, z1), add(hadamard_product(y_vec, add(self.a_R, z1)), mul(bin_vec, z*z))) 
-        # print("t0-3")
-        # print(t3)
-        # print("-------------\n")
+
         t0 = inner_product(l0, r0)
         t2 = inner_product(l1, r1)
         #t1 = <l0 + l1, r0 + r1> - t0 - t2

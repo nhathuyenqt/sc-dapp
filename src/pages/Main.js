@@ -30,7 +30,7 @@ function Main(){
             <Navbar />
               <Switch>
                 <PrivateRoute path='/' exact component={Home} />
-                <PrivateRoute path='/posts' component={Posts} />
+                <PrivateRoute path='/posts' exact component={Posts} />
                 <Route path='/history' component={History} />
                 <Route path='/reports' component={Reports} />
                 <Route path='/admin' component={GroupList} />

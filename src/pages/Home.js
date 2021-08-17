@@ -3,13 +3,11 @@ import React from 'react';
 import {Typography, Button, Card,  CircularProgress, Container, CardActions, Grid, CardContent, TextField} from '@material-ui/core'
 import QRCode from "react-qr-code";
 import  useStyles  from './Styles.js';
-
 import {useState, useEffect} from 'react'
 import {ethers} from 'ethers'
 import xtype from 'xtypejs'
 import text  from './../contract_address.json';
 import { useAuth } from "../helper/AuthContext"
-
 import Switch from '@material-ui/core/Switch';
 import XContract from './../artifacts/contracts/XContract.sol/XContract.json'
 
@@ -349,7 +347,7 @@ function Home(props) {
                 </Grid>
               </div>
               {balanceView ?
-              (<Typography variant = "subtitle2" gutterBottom>({balance.CL},{balance.CR}) </Typography>):
+              (<Typography variant = "subtitle2" gutterBottom>({balance.CL} {balance.CR}) </Typography>):
               (<Typography variant = "subtitle2" gutterBottom> {balance.b} </Typography>)}
               <TextField onChange={e => setTo(e.target.value)} placeholder="Recipient Public Key" 
                     variant='outlined'
@@ -379,8 +377,6 @@ function Home(props) {
 
             <CardContent className = {classes.cardContent}>
               <Typography gutterBottom variant = "h5"> New post </Typography>
-         
-        
               <TextField onChange={e => setPost(e.target.value)} placeholder="Task" variant='outlined'
                   fullWidth
                   color ="secondary"

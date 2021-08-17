@@ -31,48 +31,4 @@ function App(props) {
           </Router>
   );
 }
-
-// const mapStateToProps = (state) => {
-//   return {
-//       isAuthenticated: isAuthenticated(state),
-//   };
-// };
-
-
-// function App(){
-//     return (
-        
-//         // <header className="App-header">
-//         //       <button onClick={fetchGreeting}> Fetch Greeting </button> 
-//         //       <button onClick={setGreeting}> Set Greeting </button>
-    
-//         //       <input 
-//         //         onChange={e => setGreetingValue(e.target.value)} 
-//         //         placeholder="Set greeting"
-//         //         value={greeting}
-//         //       /> 
-              
-//         //     </header> 
-//          <Router>
-//             {/* <Navbar /> */}
-//               <Switch>
-//                 <Route path='/login' exact component={Login} /> 
-//                 <Route path='/' component={Dashboard} />  
-//                 {/*<Route path='/home' exact component={Home} />
-//                 <Route path='/posts' component={Posts} />
-//                 <Route path='/history' component={History} />
-//                 <Route path='/reports' component={Reports} />
-//                 <Route path='/admin' component={GroupList} />  */}
-                
-
-//                 {/* <Redirect to='/login' from='*' /> */}
-//                 {/* <Route path='/products' component={Products} /> */}
-//               </Switch> 
-//            </Router>
-
-//       );
-// }
-
-// export default Dashboard;
-
 export default App
