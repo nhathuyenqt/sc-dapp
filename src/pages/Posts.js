@@ -146,6 +146,7 @@ function Posts (props) {
     const handleClose = (value) => {
       setOpen(false);
       setSelectedItem(value);
+      reload();
     };
 
     const handlePost = () => {

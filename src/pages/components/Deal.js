@@ -25,7 +25,7 @@ function DealDialog(props) {
     const { onClose, selectedItem, open, deal, price} = props;
     console.log(deal);
     useEffect(() => {
-        // console.log(selectedItem);
+        // console.log(deal);
         // loadMinOffer();
         }, [])
 

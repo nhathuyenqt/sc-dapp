@@ -64,8 +64,9 @@ def initBalance(y, user_account):
         }      
     
 
-def genKey(uid, user_acc):
-
+def genKey(uid, user_key):
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+    user_address = user_account.address
     # if 'uid' in request.get_json():
     #     uid = request.get_json()['uid']
     x = group1.random(ZR)
@@ -79,14 +80,14 @@ def genKey(uid, user_acc):
         json.dump(data, outfile)
     outfile.close()
 
-    balance = initBalance(data['y'], user_acc)  
+    balance = initBalance(data['y'], user_account)  
 
     message = {
         'status': 200,
         'message': 'OK',
         'data': data,
         'balance': balance,
-        'privateKey' : user_acc.key
+        'privateKey' : user_key
     }
     print(message)
     resp = jsonify(message)
@@ -133,7 +134,7 @@ def fetchKey():
         resp.status_code = 200
         return resp
     else:
-        return genKey(uid, user_account)
+        return genKey(uid, user_key)
 
 def readElBalance(x, y, user_account):
 
@@ -343,7 +344,7 @@ def acceptDeal():
         user_key = request.get_json()['user_key']
     if 'dealId' in request.get_json():
         dealId = request.get_json()['dealId']
-    
+    print("Accept Deal ", requestId, "  + ", dealId)
     requestId_str = str(requestId)
 
     user_account = w3.eth.account.privateKeyToAccount(user_key)
@@ -352,7 +353,7 @@ def acceptDeal():
     tx = contract_instance.functions.acceptDeal(requestId, dealId, requestId_str).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address), 'from': user_account.address})
     signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    print("Tx ", hash.hex())
+    
 
     message = {
         'status': 200,

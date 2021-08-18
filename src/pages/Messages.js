@@ -38,24 +38,6 @@ function Messages (props) {
         headerClassName: 'super-app-theme--header',
         flex: 1,
         color: 'white'
-      },
-      {
-        field: 'action',
-        headerName: 'Action', headerClassName: 'super-app-theme--header',
-        width: 150,
-        renderCell: (params) => (
-          <strong>
-
-            <Button
-              variant="outlined" color="primary"
-              size="small"
-              // onClick={() => handleClickOpen(params)}
-              >
-              Offer a price
-            </Button>
-          </strong>
-        ),
-        disableClickEventBubbling: true,
       }
     ];
 
@@ -139,8 +121,6 @@ function Messages (props) {
     }
     
     
-
-    
     return (
         <div style={{ height: '800px',  marginLeft: 100, marginRight: 20}} className={classes.root}>
           <Grid container align-items="center" style={{width: '100%',height: "100%" }}>
@@ -151,6 +131,7 @@ function Messages (props) {
                   <DataGrid
                   rows={msgList}
                   columns={columns}
+                  sortModel={[{ field: 'id', sort: 'desc' }]}
                   pageSize={8}
                   //   checkboxSelection
                   disableSelectionOnClick/>

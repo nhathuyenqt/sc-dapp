@@ -165,14 +165,13 @@ contract XContract{
         string memory m  = string(abi.encodePacked("Your offer for Request ", requestId_str, " was rejected."));
         for (uint i = 0; i<offers[requestId].length; i++)
             if (i != dealId){
-            offers[requestId][i].state = DealState.Rejected;
-            messages[offers[requestId][dealId].bidder].push(m);
-        }
+                offers[requestId][i].state = DealState.Rejected;
+                messages[offers[requestId][i].bidder].push(m);
+            }
     
         offers[requestId][dealId].state = DealState.Accepted;
         m  = string(abi.encodePacked("Your offer for Request ", requestId_str, " was Accepted."));
-        string memory offerSender = offers[requestId][dealId].bidder;
-        messages[offerSender].push(m);
+        messages[offers[requestId][dealId].bidder].push(m);
         RequestList[requestId].state = State.Assigned;
         // notAvailableList.push(id);
         for (uint i=0; i<availableList.length; i++)

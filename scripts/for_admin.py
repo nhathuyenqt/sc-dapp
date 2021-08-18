@@ -17,8 +17,8 @@ bytecode = deployedContract['bytecode']
 print("contract_address  ", contract_address)
 contract_address = Web3.toChecksumAddress(contract_address)
 contract_instance = w3.eth.contract(abi=abi, address=contract_address)
-# admin_key = 'b4dde0d4f2685c127ae8e7644508ac7c70472bd9d38b4a464884ae158120e162' #rinkeby
-admin_key = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
+admin_key = 'b4dde0d4f2685c127ae8e7644508ac7c70472bd9d38b4a464884ae158120e162' #rinkeby
+# admin_key = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
 acc_admin = w3.eth.account.privateKeyToAccount(admin_key)
 admin_address = Web3.toChecksumAddress(acc_admin.address)
 el = ElGamal(group1)
