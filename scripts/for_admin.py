@@ -51,7 +51,7 @@ def check_newUser():
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     
     print("check user : ", hash.hex())
-    tx = contract_instance.functions.checkAuthorizeNewUser('0x976EA74026E726554dB657fA54763abd0C3a0aa9').call({'from': admin_address})
+    tx = contract_instance.functions.checkAuthorizeNewUser('0xcE9286718A6d54847679A0b61ce48CfCb8c00F43').call({'from': admin_address})
     print("check user : ", tx)
 
 def reverse(a):

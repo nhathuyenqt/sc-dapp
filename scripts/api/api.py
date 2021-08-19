@@ -142,6 +142,7 @@ def readElBalance(x, y, user_account):
     (CL, CR) = balance
     if (CL == ''):
         return initBalance(y, user_account)
+
     x =reverse(x)
     y = reverse(y)
     
@@ -542,9 +543,11 @@ def genConfProof():
     pr2 = json.dumps(rangeProofForRemainBalance)
     pr3 = json.dumps(sigmaProof)
     input = json.dumps(input) 
-    gas = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).estimateGas()
-    print("gas ", gas)
-    tx = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address), 'gas': gas})
+    print("contract address ", contract_address)
+    print("sender ", user_account.address)
+    gas = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).estimateGas({'from': user_account.address})
+    
+    tx = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address),  'from': user_account.address})
     signed_tx = w3.eth.account.signTransaction(tx, user_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
