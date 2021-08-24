@@ -1,5 +1,4 @@
 import React from 'react';
-
 import {Typography, Button, Card,  CircularProgress, Container, CardActions, Grid, CardContent, TextField} from '@material-ui/core'
 import { Link } from "react-router-dom";
 import QRCode from "react-qr-code";
