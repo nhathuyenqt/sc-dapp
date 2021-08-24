@@ -121,7 +121,7 @@ def handle_sigma_proof(proof, info):
 
     
 def homo_computation(info):
-    print("info " , info)
+    
     y = info['y']
     yr = info['yr']
     C = info['C']
@@ -153,7 +153,8 @@ def homo_computation(info):
     tx = contract_instance.functions.updateBalance(y_str, CL1, CR1, yr_str, CL2, CR2).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address)})
     signed_tx = w3.eth.account.signTransaction(tx, admin_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    print(hash.hex())
+    print("Server confirms proof Tx : ", hash.hex())
+    # print("info " , info)
 
 def handle_event_transfer(event):
     

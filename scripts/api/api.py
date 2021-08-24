@@ -522,11 +522,11 @@ def genConfProof():
         yR = request.get_json()['y_recipient']
     if 'amt' in request.get_json():
         amt = request.get_json()['amt']        
-    if 'b_after' in request.get_json():
-        b_after = request.get_json()['b_after']
+
     print("api key ", user_key)
     user_account = w3.eth.account.privateKeyToAccount(user_key)
     print("Transfer from ", yS, "to", yR)
+    
     res = readElBalance(sk, yS, user_account)
 
     amt = int(amt)
@@ -536,6 +536,8 @@ def genConfProof():
         err = 'Insufficient balance'
         resp = {'code': -1, 'err':err}
         return resp
+    b_after = b - amt
+    print("*Amt ", amt, "to", b_after)
 
     CL = res['CL']
     CR = res['CR']
@@ -548,7 +550,6 @@ def genConfProof():
     sk =reverse(sk)
     yS = reverse(yS)
     yR = reverse(yR)
-    b_after = int(b_after)
     p = Prover()
     p1, c1 = p.prove(amt)
     rangeProofForAmt  = convertProofToJSON(p1, c1)

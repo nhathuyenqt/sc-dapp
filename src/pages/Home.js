@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {Typography, Button, Card,  CircularProgress, Container, CardActions, Grid, CardContent, TextField} from '@material-ui/core'
 import { Link } from "react-router-dom";
 import QRCode from "react-qr-code";
@@ -385,7 +386,6 @@ function Home(props) {
             </CardContent>
             <CardActions>
               <Button size ="small" color="primary" onClick={handleClickScan} >Scan Deal</Button>
-              <Button size ="small" color="primary" onClick={handleClickScan} >Scan Recipient</Button>
               <Button size ="small" color="primary" onClick={getElBalance} >Get El Balance</Button>
               <Button size ="small" color="primary" onClick={confTransfer} >Conf Transfer</Button>
             </CardActions>
@@ -415,8 +415,7 @@ function Home(props) {
           </Grid>
           
         </Grid>
-        <QRscanner open={scan} onClose={handleCloseScan} setData = {setRecipient} />
-        <QRscanner open={scanDeal} onClose={handleCloseDeal} setData = {deal}/>
+        <QRscanner open={scan} onClose={handleCloseScan} setData = {deal} />
       </Container>
     </div>)
   );

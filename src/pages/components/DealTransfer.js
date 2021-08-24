@@ -14,7 +14,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 
 function DealTransfer(props) {
 
-    const { currentBCAccount, keypair} = useAuth()
+    const { currentBCAccount, keypair, balance} = useAuth()
     const [text, setText] = useState('');
     const { onClose, open, deal } = props;
     const [amtView, setAmtView] = useState(true);
@@ -27,8 +27,7 @@ function DealTransfer(props) {
     async function encryptTransfer(check){
         setAmtView(check);
         if (deal != null && check == false){
-
-            console.log("DEAL ", deal.price);
+            console.log("DEAL ", deal);
             const response = await fetch("/encryptAmount", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -51,42 +50,48 @@ function DealTransfer(props) {
         
     };
 
-    async function acceptDeal (){
-    if (deal != null){
-        console.log("DEAL ", deal);
-    //   const response = await fetch("/acceptDeal", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({
-    //       'user_key': currentBCAccount.privateKey,
-    //       'requestId': deal[2],
-    //       'dealId': deal[0]
-    //     }),
-    //   })
-        
-    //   let result
-    //   let newPosts = []
-    //   await response.json().then((message) => {
-    //     // result = message["data"]
-        
-    //   });
-    }
+    async function payTheDeal (){
+
+      console.log()
+        const response = await fetch("/genConfProof", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            'privateKey': currentBCAccount.privateKey,
+            'user_address': currentBCAccount.address,
+            'y_sender': keypair.y,
+            'y_recipient': deal.recipient,
+            'amt':amt,
+            'x_sender': keypair.x
+          }),
+        })
+          
+        let result
+        let newPosts = []
+        await response.json().then((message) => {
+          console.log(message);
+          
+        });
+
     
     };
 
     
 
     return (
-        <Dialog aria-labelledby="alert-dialog-title" fullWidth maxWidth='xs' onClose={handleClose} open={open}>
+        <Dialog aria-labelledby="alert-dialog-title" fullWidth maxWidth='xs' style={{height:'500px'}} onClose={handleClose} open={open}>
           <DialogTitle  style={{ backgroundColor: 'rgba(220, 241, 229, 0.57)', color: 'rgba(9, 91, 11, 0.86)' }} id="alert-dialog-title">
             <Typography fullWidth margin="dense" variant="h6" >Current Min Offer</Typography>
           </DialogTitle>
           {deal && (<DialogContent>
               <DialogContentText>
-                <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="subtitle1">Description: {(deal != null)? deal.description : " "}</Typography>
-                <div style={{display: 'flex'}}>
+              <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="button" display="block">Post: {deal.requestId}</Typography>
+                <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="button" display="block">Price:</Typography>
+                <div style={{display: 'flex', margin:'10px'}}>
                     <Grid container align-items="center" spacing={2}>
-                    <Grid item>Raw</Grid>
+                    <Grid item>
+                      <Typography variant = "body2" align='center'> Raw </Typography>
+                    </Grid>
                     <Grid item >
                         <Switch
                             checked={amtView}
@@ -94,12 +99,14 @@ function DealTransfer(props) {
                             name="checkedA"
                             inputProps={{ 'aria-label': 'secondary checkbox' }} />
                     </Grid>
-                    <Grid item>Encrypted</Grid>
+                    <Grid item>
+                      <Typography variant = "body2" align='center'> Encrypted </Typography>
+                    </Grid>
                     </Grid>
                 </div>
                 {amtView ?
-                    (<Typography variant = "subtitle2" gutterBottom> ({deal.price[0]} {deal.price[1]})</Typography>):
-                    (<Typography variant = "subtitle2" gutterBottom> {amt} </Typography>)}
+                    (<Typography variant = "caption" style={{height:'32px'}}> ({deal.price[0]} {deal.price[1]})</Typography>):
+                    (<Typography variant = "h6" align='center'> {amt} </Typography>)}
                 {/* <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="subtitle1">Price: {(deal != null)? deal.price : " "}</Typography> */}
                 
                 {/* <Typography fullWidth margin="dense" style={{ alignSelf: 'flex-start'}} variant="subtitle1">{bidder}</Typography> */}
@@ -107,7 +114,7 @@ function DealTransfer(props) {
           </DialogContent>)}
           <DialogActions>
             <Button variant="contained"  color='primary' size="small" onClick={handleClose}> Close </Button>
-            {deal && <Button variant="contained"  color='secondary' size="small" onClick={acceptDeal}> Pay </Button>}
+            {deal && <Button variant="contained"  color='secondary' size="small" onClick={payTheDeal}> Pay </Button>}
           </DialogActions>
   
       </Dialog>

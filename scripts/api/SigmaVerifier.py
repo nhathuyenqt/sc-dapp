@@ -34,5 +34,5 @@ def sigmaVerify(data, info):
 
     if (At*(T**c) != (g**(t*c-sb)*(h**stau))):
         return False
-
+    print(" -------------> Verify?  True")
     return True

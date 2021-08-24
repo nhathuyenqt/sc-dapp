@@ -65,6 +65,8 @@ function QRscanner(props) {
   }
   const handleScanFile = (result) => {
       if (result) {
+          console.log(result);
+          handleScanWebCam(result);
           setScanResultFile(result);
       }
   }
@@ -77,6 +79,7 @@ function QRscanner(props) {
   
   return (
     <Dialog aria-labelledby="alert-dialog-title" fullWidth maxWidth='xs' onClose={handleClose} open={open}>
+
           <AppBar position="static">
             <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">
               <Tab label="Open image" {...a11yProps(0)} />
@@ -107,12 +110,9 @@ function QRscanner(props) {
                 />
             </div>
           </TabPanel>
-
-
-          {/* 
-          
-          <Typography style={{display: 'flex', margin: '5px'}} align='center' gutterBottom variant = "subtitle2"> {scanResultWebCam}</Typography> 
-          <DealTransfer deal = {deal} open={openPay} onClose={handleClosePay}/>   */}
+        
+          {/* <Typography style={{display: 'flex', margin: '5px'}} align='center' gutterBottom variant = "subtitle2"> {scanResultWebCam}</Typography> */}
+          <DealTransfer deal = {deal} open={openPay} onClose={handleClosePay}/>   
     </Dialog>
   );
 }

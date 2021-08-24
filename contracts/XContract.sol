@@ -10,7 +10,7 @@ contract XContract{
     uint public totalSupply = 1000000;
     uint public initialSupply = 10000;
     bytes private tempEmptyStringTest = bytes("");
-    enum State {Processing, Assigned, WaitingPaid, Closed, Cancel}
+    enum State {Processing, Assigned, Closed, Cancel}
     enum DealState {Processing, Rejected, Accepted}
     
     struct ElBalance {
@@ -85,7 +85,7 @@ contract XContract{
         validAddress[msg.sender] = true;
         association = msg.sender;
         symbol = "000";
-        console.log("Deploy Successfull ");
+        console.log("Deploy Successful");
         numberOfClosedRq = 0;
         numberOfRequest = 0;
     }
@@ -201,6 +201,16 @@ contract XContract{
             }
     }
 
+    function payTheDeal(uint requestId, uint dealId, string memory proofForAmt, string memory proofForRemainBalance, string memory sigmaProof, string memory input) public {
+        require(validAddress[msg.sender] == true, "Invalid Transaction" );
+        string memory pk = RequestList[requestId].pubkeyOfSender;
+        require(ownerOfPubkey[pk] == msg.sender, "Invalid Payment");
+        require(offers[requestId][dealId].state == DealState.Accepted, "Invalid Payment");
+        require(RequestList[requestId].state == State.Assigned, "Invalid Payment");
+        emit NewConfTransfer(numberOfRequest, proofForAmt, proofForRemainBalance, sigmaProof, input);
+        numberOfRequest += 1;
+    }
+    
     function getAllAvailableTasks() public view returns(Request[] memory){
         Request[] memory ret = new Request[](availableList.length);
         for (uint i = 0; i < availableList.length; i++) {
@@ -219,18 +229,8 @@ contract XContract{
 
     function confTransfer(string memory proofForAmt, string memory proofForRemainBalance, string memory sigmaProof, string memory input) public {
         require(validAddress[msg.sender] == true, "You haven't registered. " );
-        // availableList[numberOfRequest] = Request({
-        //     pubkeyOfSender : validPubkey[msg.sender],
-        //     id : numberOfRequest,
-        //     content: "",
-        //     state : State.Closed
-        // });
-        
-        console.log("Test Event'");
-        emit NewConfTransfer(numberOfRequest, proofForAmt, proofForRemainBalance, sigmaProof, input);
-        numberOfRequest += 1;
-
-        // return (numberOfRequest - 1); //id of his request
+        emit NewConfTransfer(numberOfTransfer, proofForAmt, proofForRemainBalance, sigmaProof, input);
+        numberOfTransfer += 1;
     }
 
     function fetchPubkey() public view returns (string memory){

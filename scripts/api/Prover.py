@@ -43,6 +43,7 @@ class Prover:
 
 
     def prove(self, _v):
+        print("value ",_v)
         gama = group1.random(ZR)
         self.v = _v
         self.cal_a_vector()
