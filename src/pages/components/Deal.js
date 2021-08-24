@@ -23,32 +23,17 @@ function DealDialog(props) {
     const { currentBCAccount} = useAuth()
     const [offer, setOffer] = useState()
     const { onClose, selectedItem, open, deal, price} = props;
-    console.log(deal);
+    if (deal != null)
+        console.log(deal[2]);
     useEffect(() => {
-        // console.log(deal);
-        // loadMinOffer();
+      
         }, [])
 
     const handleClose = () => {
       onClose(selectedItem);
     };
-    async function loadMinOffer(){
-        const response = await fetch("/loadMinOffer", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              'user_key': currentBCAccount.privateKey,
-              'id': selectedItem.id
-            }),
-          })
-          console.log(selectedItem)
-          let result
-          let newPosts = []
-          await response.json().then((message) => {
-            // result = message["data"]
-            
-          });
-    }
+
+    
 
     async function acceptDeal (){
       if (deal != null && selectedItem.state == "Processing"){

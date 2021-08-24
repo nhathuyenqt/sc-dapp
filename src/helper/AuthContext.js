@@ -25,8 +25,6 @@ export function AuthProvider({ children }) {
   function login(email, password) {
     setLoading(true);
     setCurrentPass(password)
-    console.log(email);
-    // setCurrentAddress({...currentAddress, address: address});
     auth.signInWithEmailAndPassword(email, password)
 
   }

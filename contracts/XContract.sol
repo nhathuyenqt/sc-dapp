@@ -23,7 +23,8 @@ contract XContract{
         ElBalance price;
         uint requestId;
         DealState state;
-        string bidder;        
+        string bidder;
+        string requestOwner;    
     }
 
     struct Request{
@@ -40,13 +41,21 @@ contract XContract{
         uint dealId;     
     }
 
+    struct Message{
+        bool code;
+        uint requestId;
+        ElBalance price;
+        string recipient;
+        string requestOwner;
+    }
+
     mapping(address => bool) private validAddress;
-    mapping(address => string) validPubkey;
+    mapping(address => string) private validPubkey;
     mapping(string => ElBalance) private encrytedBalance;
     mapping(string => address) private ownerOfPubkey;
     mapping(address => uint[]) private yourRequests;
     mapping(uint => Deal[]) private offers;
-    mapping(string => string[]) private messages;
+    mapping(string => Message[]) private messages;
 
     address public association;
     Request[] private RequestList;
@@ -88,10 +97,7 @@ contract XContract{
     }
 
     function checkAuthorizeNewUser(address newAcc) public view onlyAdmin returns (bool) {
-        
-        
-        return    validAddress[newAcc];
-       
+        return    validAddress[newAcc];      
     }
     // function registerKey(string  memory key, string  memory b1, string memory b2) public {
     //     if (validAddress[msg.sender] == false)
@@ -144,7 +150,8 @@ contract XContract{
             requestId: requestId,
             dealId : dealId,
             state: DealState.Processing,
-            bidder: validPubkey[msg.sender]   
+            bidder: validPubkey[msg.sender],
+            requestOwner : RequestList[requestId].pubkeyOfSender
         }));
 
     }
@@ -156,22 +163,34 @@ contract XContract{
         return offers[id];
     }
 
-    function acceptDeal(uint requestId, uint dealId, string calldata requestId_str) public {
+    function acceptDeal(uint requestId, uint dealId) public {
         require(validAddress[msg.sender] == true, "You haven't registered.");
         string memory pk = RequestList[requestId].pubkeyOfSender;
         require(ownerOfPubkey[pk] == msg.sender, "You are not onwer of this task.");
         require(RequestList[requestId].state == State.Processing, "The task is no longer available.");
         require(offers[requestId][dealId].state == DealState.Processing, "The deal state is not valid.");
-        string memory m  = string(abi.encodePacked("Your offer for Request ", requestId_str, " was rejected."));
+        
         for (uint i = 0; i<offers[requestId].length; i++)
             if (i != dealId){
                 offers[requestId][i].state = DealState.Rejected;
-                messages[offers[requestId][i].bidder].push(m);
+                messages[offers[requestId][i].bidder].push(Message({
+                    code : false,
+                    requestId: requestId,
+                    price: offers[requestId][i].price,
+                    recipient: offers[requestId][i].bidder,
+                    requestOwner : ""
+                }));
             }
-    
+
         offers[requestId][dealId].state = DealState.Accepted;
-        m  = string(abi.encodePacked("Your offer for Request ", requestId_str, " was Accepted."));
-        messages[offers[requestId][dealId].bidder].push(m);
+        messages[offers[requestId][dealId].bidder].push(Message({
+                    code : true,
+                    requestId: requestId,
+                    price: offers[requestId][dealId].price,
+                    recipient: offers[requestId][dealId].bidder,
+                    requestOwner : pk
+                }));       
+
         RequestList[requestId].state = State.Assigned;
         // notAvailableList.push(id);
         for (uint i=0; i<availableList.length; i++)
@@ -220,7 +239,7 @@ contract XContract{
         return validPubkey[msg.sender];
     }
 
-    function getMessages() public view returns (string[] memory){
+    function getMessages() public view returns (Message[] memory){
         require(validAddress[msg.sender] == true, "You haven't registered.");
         string memory pk = validPubkey[msg.sender];
         return messages[pk];

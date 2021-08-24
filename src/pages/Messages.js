@@ -18,7 +18,9 @@ import SendIcon from '@material-ui/icons/Send';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import DealDialog from './components/Deal';
 import NewPostDialog from './components/NewPost';
+import DealViewQR from './components/DealViewQR';
 import Avatar from '@material-ui/core/Avatar';
+
 // import EditPost from '../../pages2/EditPost/EditPost';
 import PropTypes from 'prop-types';
 import { useAuth } from "../helper/AuthContext"
@@ -30,6 +32,8 @@ function Messages (props) {
     const [msgList, setMsgList] = useState([]);
     const classes = useStyles();
     const State = ['Processing', 'Assigned', 'WaitingPaid', 'Closed', 'Cancel'] ;
+    const [QR, setQR] = useState();
+    const [showQR, setShowQR] = useState();
     const columns = [
       { field: 'id', headerName: 'ID', width: 68, headerClassName: 'super-app-theme--header'},
       {
@@ -37,39 +41,61 @@ function Messages (props) {
         headerName: 'Content',
         headerClassName: 'super-app-theme--header',
         flex: 1,
-        color: 'white'
-      }
+        color: 'white',
+        renderCell: (params) => {
+          
+          let t = "Your offer for request " + params.row.requestId + " is " + (params.row.code ? "Accepted" : "Rejected");
+          return(<strong>
+            <Typography variant="subtitle1">
+               {t}
+            </Typography>
+          </strong>)
+
+        }    
+        ,
+        disableClickEventBubbling: true,
+      },
+      {
+        field: 'detail',
+        headerName: 'Detail',
+        headerClassName: 'super-app-theme--header',
+        width: 150,
+        renderCell: (params) => (
+          <strong>
+            <Button
+                variant="contained"
+                disabled = {params.row.code? false : true}
+                // style={{ color: green[500] }}
+                color = 'primary'
+                className={classes.button}
+                onClick={() => openQR(params.row)}
+                startIcon={ <VisibilityIcon/>}
+              >
+                Show
+              </Button>
+{/* 
+            <IconButton
+              style={{ color: green[500] }}
+              size="small"
+              onClick={() => openQR(params.row)}
+              disabled = {params.row.code? false : true}
+              >
+              
+              <VisibilityIcon/>
+            </IconButton> */}
+          </strong>
+        ),
+        disableClickEventBubbling: true,
+      },
     ];
 
     setTimeout(()=>{
       listenEvents()
     }, 5000);
     
-
-
-    async function loadYourTasks(){
-      const response = await fetch("/loadYourTasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          'user_key': currentBCAccount.privateKey
-        })
-      })
-      let result
-      let newYourPosts = []
-      await response.json().then((message) => {
-        result = message["data"]
-        console.log(result)
-        result.map((task) => {
-          newYourPosts.push({id : task[0],
-            description : task[1],
-            pubkey: task[2],
-            state: State[task[3]]
-          })
-        })
-      });
-      await listenEvents()
-      return result      
+    const openQR = (item) => {
+      setQR(item);
+      setShowQR(true);
     }
 
     async function loadMessages(){
@@ -89,7 +115,10 @@ function Messages (props) {
             message.map((msg, i) => {
               newMsgs.push({
                 id : i,
-                content : msg
+                code: msg[0],
+                requestId: msg[1],
+                price: msg[2],
+                recipient : msg[3]
             })
           })
           setMsgList(newMsgs)
@@ -137,6 +166,7 @@ function Messages (props) {
                   disableSelectionOnClick/>
               </Grid>
           </Grid>
+          <DealViewQR data={QR} open={showQR} onClose={setShowQR}/>
       </div>
     );
     
@@ -153,3 +183,5 @@ const useStyles = makeStyles({
   }
 });
 export default (Messages);
+
+

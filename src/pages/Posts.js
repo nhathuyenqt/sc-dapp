@@ -92,7 +92,7 @@ function Posts (props) {
             <IconButton
               style={{ color: green[500] }}
               size="small"
-              onClick={() => handleClickLoad(params)}>
+              onClick={() => loadMinOffer(params.row)}>
 
               <VisibilityIcon/>
             </IconButton>
@@ -126,16 +126,16 @@ function Posts (props) {
     }, 5000);
     
     const handleClickLoad = (params) => {
-      console.log(params.row);
+
       setSelectedItem(params.row)
-      loadMinOffer();
+      
       
     };
 
     const handleCloseOffer = (value) => {
       setOpenOffer(false);
       setSelectedItem(value);
-      reload();
+      
     };
     const handleClickOpen = (params) => {
       console.log(params.row);
@@ -154,7 +154,8 @@ function Posts (props) {
     };
     const handleCloseNewPost = () => {
       setOpenNewPost(false);
-      reload()
+      
+      reload();
     };
 
     async function loadTasks(){
@@ -170,7 +171,6 @@ function Posts (props) {
       let newPosts = []
       await response.json().then((message) => {
         result = message["data"]
-        console.log(result)
         result.map((task) => {
           newPosts.push({id : task[0],
             description : task[1],
@@ -178,8 +178,9 @@ function Posts (props) {
           })
         })
         setPostList(newPosts)
+  
       });
-      await listenEvents()
+      // await listenEvents()
       return result      
     }
 
@@ -195,7 +196,6 @@ function Posts (props) {
       let newYourPosts = []
       await response.json().then((message) => {
         result = message["data"]
-        console.log(result)
         result.map((task) => {
           newYourPosts.push({id : task[0],
             description : task[1],
@@ -204,18 +204,20 @@ function Posts (props) {
           })
         })
         setYourPostList(newYourPosts)
+
       });
-      await listenEvents()
+      // await listenEvents()
       return result      
     }
 
-    async function loadMinOffer(){
+    async function loadMinOffer(item){
+      setSelectedItem(item)
       const response = await fetch("/loadMinOffer", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             'user_key': currentBCAccount.privateKey,
-            'id': selectedItem.id,
+            'id': item.id,
             'x': keypair.x
           }),
         })
@@ -228,15 +230,15 @@ function Posts (props) {
           let raw_price = result['raw_price']
           setDeal(newdeal)
           setMinOffer(raw_price)
+          setOpenOffer(true);
         });
-      setOpenOffer(true);
+   
   }
 
 
     async function listenEvents(){
       
       if (typeof window.ethereum !== 'undefined'){
-        console.log('listenEvents')
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const contract = new ethers.Contract(contractAddress, XContract.abi, provider);
         contract.on("NewPrice", (id, CL_price, CR_price) => {
@@ -248,13 +250,13 @@ function Posts (props) {
     }
 
     useEffect(() => {
-      loadTasks();
-      loadYourTasks();
+      reload();
       }, [])
   
-    async function reload(){
-      loadTasks();
-      loadYourTasks();
+    const reload = async () =>{
+      console.log("Closed..")
+      await loadTasks();
+      await loadYourTasks();
     }
     
     

@@ -30,7 +30,7 @@ function Navbar() {
   const classes = style();
   const [title, setTitle] = useState("Main");
 
-  const {logout} = useAuth()
+  const {logout, currentUser} = useAuth()
   let history = useHistory()
   async function handleLogout() {
     // setError("")
@@ -55,9 +55,10 @@ function Navbar() {
             </Link>
 
           </div>
-          
-          <Button width= '200px' size ="small" color='primary' className={classes.button} onClick={handleLogout} >LOG OUT</Button>
-
+          <div>
+            <Typography style={{color:"white"}} gutterBottom variant = "subtitle1">{currentUser.email}</Typography>
+            <Button style={{width:'150px'}}  size ="small" color='primary' className={classes.button} onClick={handleLogout} >LOG OUT</Button>
+          </div>
         </div>
         <nav className={sidebar ? 'nav-menu active' : 'nav-menu'}>
           <ul className='nav-menu-items' onClick={showSidebar}>

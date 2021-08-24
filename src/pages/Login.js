@@ -33,7 +33,6 @@ function Login(props) {
                 setErrorObj('Password is Required');
             }else{
                 try {
-                    console.log(infoUser);
                     await login(infoUser.email, infoUser.password)
                     if (loading === false)
                         history.push("/")

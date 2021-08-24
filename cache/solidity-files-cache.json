@@ -72,8 +72,8 @@
       ]
     },
     "/Users/kzjouf/Desktop/project/scdapp/contracts/XContract.sol": {
-      "lastModificationDate": 1629279885298,
-      "contentHash": "f03616fdcf268fe51e939c743a35e3b3",
+      "lastModificationDate": 1629830614424,
+      "contentHash": "deabc3efe8cbb9ac31495fa389fbd07b",
       "sourceName": "contracts/XContract.sol",
       "solcConfig": {
         "version": "0.8.4",

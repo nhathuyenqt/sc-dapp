@@ -31,6 +31,8 @@ function Home(props) {
   const [post, setPost] = useState("")
   const [balanceView, setBalanceView] = useState(true);
   const [scan, setScan] = useState(false);
+  const [scanDeal, setScanDeal] = useState(false);
+  const [deal, setDeal] = useState()
   
 
   useEffect(() => {
@@ -126,6 +128,10 @@ function Home(props) {
 
   const handleCloseScan = () => {
     setScan(false);
+  };
+
+  const handleCloseDeal = () => {
+    setScanDeal(false);
   };
 
   // async function genProof() {
@@ -379,6 +385,7 @@ function Home(props) {
                 /> 
             </CardContent>
             <CardActions>
+              <Button size ="small" color="primary" onClick={handleClickScan} >Scan Deal</Button>
               <Button size ="small" color="primary" onClick={handleClickScan} >Scan Recipient</Button>
               <Button size ="small" color="primary" onClick={getElBalance} >Get El Balance</Button>
               <Button size ="small" color="primary" onClick={confTransfer} >Conf Transfer</Button>
@@ -409,7 +416,8 @@ function Home(props) {
           </Grid>
           
         </Grid>
-        <QRscanner open={scan} onClose={handleCloseScan} setData = {setRecipient}/>
+        <QRscanner open={scan} onClose={handleCloseScan} setData = {setRecipient} />
+        <QRscanner open={scanDeal} onClose={handleCloseDeal} setData = {deal}/>
       </Container>
     </div>)
   );
