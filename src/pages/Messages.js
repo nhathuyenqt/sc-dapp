@@ -94,6 +94,7 @@ function Messages (props) {
     }, 5000);
     
     const openQR = (item) => {
+      console.log(item);
       setQR(item);
       setShowQR(true);
     }
@@ -118,7 +119,8 @@ function Messages (props) {
                 code: msg[0],
                 requestId: msg[1],
                 price: msg[2],
-                recipient : msg[3]
+                requestOwner : msg[3],
+                recipient : keypair.y
             })
           })
           setMsgList(newMsgs)

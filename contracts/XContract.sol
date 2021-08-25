@@ -7,8 +7,6 @@ import "hardhat/console.sol";
 contract XContract{
     string public name = 'Xcontract';
     string symbol;
-    uint public totalSupply = 1000000;
-    uint public initialSupply = 10000;
     bytes private tempEmptyStringTest = bytes("");
     enum State {Processing, Assigned, Closed, Cancel}
     enum DealState {Processing, Rejected, Accepted}
@@ -24,7 +22,8 @@ contract XContract{
         uint requestId;
         DealState state;
         string bidder;
-        string requestOwner;    
+        string requestOwner;   
+        
     }
 
     struct Request{
@@ -33,20 +32,17 @@ contract XContract{
         string content;
         string pubkeyOfSender;
         // string[4] proof;
-        State state;        
-    }
-
-    struct TrackingDeal{
-        uint requestId;
-        uint dealId;     
+        
+        State state;     
+        ElBalance acceptedPrice;   
+        string worker; 
     }
 
     struct Message{
         bool code;
         uint requestId;
         ElBalance price;
-        string recipient;
-        string requestOwner;
+        string requestOwner; 
     }
 
     mapping(address => bool) private validAddress;
@@ -65,6 +61,7 @@ contract XContract{
 
     uint numberOfClosedRq;
     uint numberOfRequest; 
+    uint numberOfTransfer;
     // enum State {None, WaitingService, Available, OnWorking, Processing, Assigned, WaitingConfirm, Completed}
     
    
@@ -88,6 +85,7 @@ contract XContract{
         console.log("Deploy Successful");
         numberOfClosedRq = 0;
         numberOfRequest = 0;
+        numberOfTransfer = 0;
     }
 
     function authorizeNewUser(address[] memory newAcc) public onlyAdmin  {
@@ -131,7 +129,9 @@ contract XContract{
             content : _task,
             pubkeyOfSender : validPubkey[msg.sender],
             id : numberOfRequest,
-            state : State.Processing
+            state : State.Processing,
+            acceptedPrice : ElBalance({CL : "", CR : ""}),
+            worker: ""
         }));
 
         yourRequests[msg.sender].push(numberOfRequest);
@@ -177,8 +177,7 @@ contract XContract{
                     code : false,
                     requestId: requestId,
                     price: offers[requestId][i].price,
-                    recipient: offers[requestId][i].bidder,
-                    requestOwner : ""
+                    requestOwner : pk
                 }));
             }
 
@@ -187,7 +186,6 @@ contract XContract{
                     code : true,
                     requestId: requestId,
                     price: offers[requestId][dealId].price,
-                    recipient: offers[requestId][dealId].bidder,
                     requestOwner : pk
                 }));       
 
@@ -207,8 +205,8 @@ contract XContract{
         require(ownerOfPubkey[pk] == msg.sender, "Invalid Payment");
         require(offers[requestId][dealId].state == DealState.Accepted, "Invalid Payment");
         require(RequestList[requestId].state == State.Assigned, "Invalid Payment");
-        emit NewConfTransfer(numberOfRequest, proofForAmt, proofForRemainBalance, sigmaProof, input);
-        numberOfRequest += 1;
+        emit NewConfTransfer(numberOfTransfer, proofForAmt, proofForRemainBalance, sigmaProof, input);
+        numberOfTransfer += 1;
     }
     
     function getAllAvailableTasks() public view returns(Request[] memory){

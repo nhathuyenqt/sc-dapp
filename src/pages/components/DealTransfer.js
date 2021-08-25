@@ -70,7 +70,7 @@ function DealTransfer(props) {
         let newPosts = []
         await response.json().then((message) => {
           console.log(message);
-          
+          onClose();
         });
 
     
@@ -81,7 +81,7 @@ function DealTransfer(props) {
     return (
         <Dialog aria-labelledby="alert-dialog-title" fullWidth maxWidth='xs' style={{height:'500px'}} onClose={handleClose} open={open}>
           <DialogTitle  style={{ backgroundColor: 'rgba(220, 241, 229, 0.57)', color: 'rgba(9, 91, 11, 0.86)' }} id="alert-dialog-title">
-            <Typography fullWidth margin="dense" variant="h6" >Current Min Offer</Typography>
+            <Typography fullWidth margin="dense" variant="h6" >Pay for the task</Typography>
           </DialogTitle>
           {deal && (<DialogContent>
               <DialogContentText>
