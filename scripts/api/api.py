@@ -138,7 +138,7 @@ def fetchKey():
 
 def readElBalance(x, y, user_account):
 
-    balance = contract_instance.functions.ElBalanceOf(y).call({'from': user_account.address})
+    balance = contract_instance.functions.yourBalance().call({'from': user_account.address})
     (CL, CR) = balance
     if (CL == ''):
         return initBalance(y, user_account)
@@ -368,6 +368,30 @@ def loadMinOffer():
     resp.status_code = 200
     return resp
 
+@app.route('/cancelRequest', methods=['POST'])
+def cancelRequest():
+
+    if 'id' in request.get_json():
+        id = request.get_json()['id']
+    if 'user_key' in request.get_json():
+        user_key = request.get_json()['user_key']
+
+    id = int(id)
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+    tx = contract_instance.functions.cancelRequest(id).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address), 'from': user_account.address})
+    signed_tx = w3.eth.account.signTransaction(tx, user_account.privateKey)
+    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    print(hash)
+
+    message = {
+        'message': 'OK',
+        'hash': str(hash)
+    }
+
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
+
 @app.route('/acceptDeal', methods=['POST'])
 def acceptDeal():
     if 'requestId' in request.get_json():
@@ -508,20 +532,7 @@ def convertProofToJSON(p, c):
         }
     return res
 
-@app.route('/genConfProof', methods=['POST'])
-def genConfProof():
-    if 'user_address' in request.get_json():
-        user_address = request.get_json()['user_address']
-    if 'privateKey' in request.get_json():
-        user_key = request.get_json()['privateKey']
-    if 'y_sender' in request.get_json():
-        yS = request.get_json()['y_sender']
-    if 'x_sender' in request.get_json():
-        sk = request.get_json()['x_sender']
-    if 'y_recipient' in request.get_json():
-        yR = request.get_json()['y_recipient']
-    if 'amt' in request.get_json():
-        amt = request.get_json()['amt']        
+def genConfProof(user_key, yS, sk, yR, amt):
 
     print("api key ", user_key)
     user_account = w3.eth.account.privateKeyToAccount(user_key)
@@ -541,11 +552,7 @@ def genConfProof():
 
     CL = res['CL']
     CR = res['CR']
-    # balance = contract_instance.functions.ElBalanceOf(yS).call()
 
-    # (CL, CR) = balance
-
-    # CL = reverse(CL)
     # CR = reverse(CR)
     sk =reverse(sk)
     yS = reverse(yS)
@@ -575,13 +582,39 @@ def genConfProof():
     pr2 = json.dumps(rangeProofForRemainBalance)
     pr3 = json.dumps(sigmaProof)
     input = json.dumps(input) 
-    print("contract address ", contract_address)
-    print("sender ", user_account.address)
-    gas = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).estimateGas({'from': user_account.address})
-    
-    tx = contract_instance.functions.confTransfer(pr1, pr2, pr3, input).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address),  'from': user_account.address})
+
+    return (pr1, pr2, pr3, input)
+
+@app.route('/payTheDeal', methods=['POST'])
+def payTheDeal():
+    if 'privateKey' in request.get_json():
+        user_key = request.get_json()['privateKey']
+    if 'y_sender' in request.get_json():
+        yS = request.get_json()['y_sender']
+    if 'x_sender' in request.get_json():
+        sk = request.get_json()['x_sender']
+    if 'y_recipient' in request.get_json():
+        yR = request.get_json()['y_recipient']
+    if 'amt' in request.get_json():
+        amt = request.get_json()['amt']        
+    # if 'dealId' in request.get_json():
+    #     dealId = request.get_json()['dealId']    
+    if 'requestId' in request.get_json():
+        requestId = request.get_json()['requestId'] 
+    print("json ", request.get_json()) 
+    (pr1, pr2, pr3, input) = genConfProof(user_key, yS, sk, yR, amt)
+    user_account = w3.eth.account.privateKeyToAccount(user_key)
+    gas = contract_instance.functions.payTheDeal(requestId, pr1, pr2, pr3, input).estimateGas({'from': user_account.address})
+    tx = contract_instance.functions.payTheDeal(requestId, pr1, pr2, pr3, input).buildTransaction({'nonce': w3.eth.getTransactionCount(user_account.address),  'from': user_account.address})
     signed_tx = w3.eth.account.signTransaction(tx, user_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    message = {
+        'status': 200,
+        'message': 'OK',
+        'hash': str(hash)
+    }
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
 
-    return result
 

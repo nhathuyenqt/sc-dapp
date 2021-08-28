@@ -17,9 +17,9 @@ bytecode = deployedContract['bytecode']
 print("contract_address  ", contract_address)
 contract_address = Web3.toChecksumAddress(contract_address)
 contract_instance = w3.eth.contract(abi=abi, address=contract_address)
-admin_key = 'b4dde0d4f2685c127ae8e7644508ac7c70472bd9d38b4a464884ae158120e162' #rinkeby
+# admin_key = 'b4dde0d4f2685c127ae8e7644508ac7c70472bd9d38b4a464884ae158120e162' 
 # admin_key = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
-admin_key = "4455b2b2897046e45ed0467c2cfb77be6f09d6dd0d215367470755d7982e8ceb"
+admin_key = "4455b2b2897046e45ed0467c2cfb77be6f09d6dd0d215367470755d7982e8ceb" #rinkeby
 acc_admin = w3.eth.account.privateKeyToAccount(admin_key)
 admin_address = Web3.toChecksumAddress(acc_admin.address)
 el = ElGamal(group1)
@@ -34,8 +34,9 @@ db = firestore.client()
 users_ref = db.collection('users')
 
 def check_newUser():
+
     docs = users_ref.stream()
-    print("admin address : ",admin_address)
+    print("admin address : ", admin_address)
     args = []
     for doc in docs:
         # users_list.append(doc.to_dict())
@@ -47,13 +48,13 @@ def check_newUser():
         # 
     # args = [w3.utils.asciiToHex(x) for x in args]
 
-    tx = contract_instance.functions.authorizeNewUser(args).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address), 'from': admin_address})
+    tx = contract_instance.functions.authorizeNewUser(args).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address), 'from': acc_admin.address})
     signed_tx = w3.eth.account.signTransaction(tx, admin_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     
     print("check user : ", hash.hex())
-    tx = contract_instance.functions.checkAuthorizeNewUser('0xcE9286718A6d54847679A0b61ce48CfCb8c00F43').call({'from': admin_address})
-    print("check user : ", tx)
+    # tx = contract_instance.functions.checkAuthorizeNewUser('0xcE9286718A6d54847679A0b61ce48CfCb8c00F43').call({'from': admin_address})
+    # print("check user : ", tx)
 
 def reverse(a):
     if (type(a) ==  list):
@@ -90,7 +91,7 @@ def handle_event1(event):
     v = Verifier()
     result = v.verify(proof, challenge)
     print(id, " VERIFIED ", result)
-    tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address)})
+    tx = contract_instance.functions.confirmProof(id, result).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address), 'from': acc_admin.address})
     signed_tx = w3.eth.account.signTransaction(tx, admin_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print(hash.hex())
@@ -121,7 +122,7 @@ def handle_sigma_proof(proof, info):
     return sigmaVerify(proof, info)
 
     
-def homo_computation(info):
+def homo_computation(id, info):
     
     y = info['y']
     yr = info['yr']
@@ -131,8 +132,8 @@ def homo_computation(info):
     # y = reverse(y)
     y_str = convert(y)
     yr_str = convert(yr)
-    (CL, CR) = contract_instance.functions.ElBalanceOf(y_str).call()
-    (CLr, CRr) = contract_instance.functions.ElBalanceOf(yr_str).call()
+    (CL, CR) = contract_instance.functions.ElBalanceOf(y_str).call({'from': acc_admin.address})
+    (CLr, CRr) = contract_instance.functions.ElBalanceOf(yr_str).call({'from': acc_admin.address})
     
     CL = reverse(CL)
     CR = reverse(CR)
@@ -150,20 +151,21 @@ def homo_computation(info):
 
     CL2 = convert(CL_r_new)
     CR2 = convert(CR_r_new)
-
-    tx = contract_instance.functions.updateBalance(y_str, CL1, CR1, yr_str, CL2, CR2).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address)})
+    print(" id ",  id)
+    gas = contract_instance.functions.confirmProof(id, y_str, CL1, CR1, yr_str, CL2, CR2).estimateGas({'from': acc_admin.address})
+    tx = contract_instance.functions.confirmProof(id, y_str, CL1, CR1, yr_str, CL2, CR2).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address), 'from': acc_admin.address})
     signed_tx = w3.eth.account.signTransaction(tx, admin_key)
     hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
     print("Server confirms proof Tx : ", hash.hex())
     # print("info " , info)
 
 def handle_event_transfer(event):
-    
+    print(admin_address)
     data = Web3.toJSON(event)
     # print("Event ", event)
     data = json.loads(data)
     data = data['args']
-    id = data['id']
+    id = data['requestId']
     proofForAmt = data['rangeproof1']
     proofForAmt = json.loads(proofForAmt)
     # proof1 = json.loads(proof1)
@@ -188,14 +190,9 @@ def handle_event_transfer(event):
             print("\n** Sigma Protocol ** \n")
             ok = handle_sigma_proof(sigmaProof, info)
             if (ok):
-                return homo_computation(info)
+                return homo_computation(id, info)
 
     print("Invalid")
-
-    tx = contract_instance.functions.confirmProof(id, ok).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address)})
-    signed_tx = w3.eth.account.signTransaction(tx, admin_key)
-    hash = w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    print(hash.hex())
 
 async def log_loop(event_filter, poll_interval):
     while True:
@@ -215,7 +212,7 @@ if __name__ == '__main__':
     
 
     # event_filter = contract_instance.eventss.NewRequest.createFilter(fromBlock='latest') 
-    event_filter = contract_instance.events.NewConfTransfer.createFilter(fromBlock='latest')    
+    event_filter = contract_instance.events.NewPayment.createFilter(fromBlock='latest')    
     loop = asyncio.get_event_loop()
     try:
         loop.run_until_complete(

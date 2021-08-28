@@ -19,18 +19,29 @@ const PRIVATE_KEY = '4455b2b2897046e45ed0467c2cfb77be6f09d6dd0d215367470755d7982
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.4",
-  paths :{
-	  artifacts: './src/artifacts'
-  },
-  networks: {
-  	rinkeby:{
-  		url : INFURA_URL,
-  		accounts: [`0x${PRIVATE_KEY}`]
+	solidity: {
+		version: "0.8.4",
+		settings: {
+			optimizer: {
+			enabled: true,
+			runs: 1000,
+			},
+		}
+	},
+  	defaultNetwork: "localhost",
+  	paths :{
+	  	artifacts: './src/artifacts'
   	},
-	hardhat :{
-		chainId: 1337
-	} 
-  }
+  	networks: {
+		rinkeby:{
+			url : INFURA_URL,
+			accounts: [`0x${PRIVATE_KEY}`],
+			allowUnlimitedContractSize: true
+		},
+		localhost :{
+			chainId: 1337,
+			allowUnlimitedContractSize: true
+		} 
+	}
 };
 

@@ -20,7 +20,7 @@ function QRscanner(props) {
   const [scanResultWebCam, setScanResultWebCam] =  useState('');
   const [deal, setDeal]  = useState('');
   const [openPay, setOpenPay]  = useState(false);
-  const qrRef = useRef(null);
+  const qrRef = useRef();
 
   const { onClose, open, setData } = props;
 

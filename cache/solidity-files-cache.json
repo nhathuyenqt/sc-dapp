@@ -9,8 +9,8 @@
         "version": "0.8.4",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -38,15 +38,15 @@
       ]
     },
     "/Users/kzjouf/Desktop/project/scdapp/node_modules/hardhat/console.sol": {
-      "lastModificationDate": 1628547608990,
+      "lastModificationDate": 1628548487473,
       "contentHash": "cc4777addd464ea56fa35b1c45df0591",
       "sourceName": "hardhat/console.sol",
       "solcConfig": {
         "version": "0.8.4",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -72,15 +72,15 @@
       ]
     },
     "/Users/kzjouf/Desktop/project/scdapp/contracts/XContract.sol": {
-      "lastModificationDate": 1629882588797,
-      "contentHash": "ed5fbb932564c8ce7e41b0bf03199f87",
+      "lastModificationDate": 1630168107769,
+      "contentHash": "68d5aef767773bfdc0f697ba3a80dc60",
       "sourceName": "contracts/XContract.sol",
       "solcConfig": {
         "version": "0.8.4",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {

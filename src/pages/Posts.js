@@ -20,6 +20,8 @@ import DealDialog from './components/Deal';
 import NewPostDialog from './components/NewPost';
 import PropTypes from 'prop-types';
 import { useAuth } from "../helper/AuthContext"
+import {useHistory} from 'react-router-dom';
+
 const contractAddress = text['contract_address']
 
 function Posts (props) {
@@ -33,7 +35,8 @@ function Posts (props) {
     const [deal, setDeal] = useState();
     const [minOffer, setMinOffer] = useState();
     const classes = useStyles();
-    const State = ['Processing', 'Assigned', 'WaitingPaid', 'Closed', 'Cancel'] ;
+    let history = useHistory()
+    const State = ['Processing', 'Assigned', 'WaitingPayValidation', 'Closed', 'Cancel'] ;
     const columns = [
       { field: 'id', headerName: 'ID', width: 68, headerClassName: 'super-app-theme--header'},
       {
@@ -112,8 +115,18 @@ function Posts (props) {
               color="primary"
               size="small"
               alignItem='center'
-              onClick={() => handleClickOpen(params)}>
-              Ok
+              onClick={() => handlePay(params)}>
+              Pay
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              alignItem='center'
+              style={{margin : '10px'}}
+              disabled = {(params.row.state == 'Processing' || params.row.state ==  'Assigned')? false : true}
+              onClick={() => handleCancel(params.row)}>
+              Cancel
             </Button>
           </strong>
         ),
@@ -131,6 +144,36 @@ function Posts (props) {
       
       
     };
+
+    const handlePay = () => {
+
+      history.push("/")
+    
+    };
+
+    const handleCancel = (item) => {
+      
+      setSelectedItem(item)
+      const response = await fetch("/cancelRequest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            'user_key': currentBCAccount.privateKey,
+            'id': item.id,
+            'x': keypair.x
+          }),
+        })
+        
+        let result
+        let newPosts = []
+        await response.json().then((message) => {
+          reload()
+        });
+   
+      // history.push("/")
+    
+    };
+
 
     const handleCloseOffer = (value) => {
       setOpenOffer(false);

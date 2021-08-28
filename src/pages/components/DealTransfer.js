@@ -35,7 +35,6 @@ function DealTransfer(props) {
                   'x' : keypair.x,
                   'CL': deal.price[0],
                   'CR': deal.price[1]
-                  
                 }),
               })
         
@@ -53,7 +52,7 @@ function DealTransfer(props) {
     async function payTheDeal (){
 
       console.log()
-        const response = await fetch("/genConfProof", {
+        const response = await fetch("/payTheDeal", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -62,7 +61,8 @@ function DealTransfer(props) {
             'y_sender': keypair.y,
             'y_recipient': deal.recipient,
             'amt':amt,
-            'x_sender': keypair.x
+            'x_sender': keypair.x,
+            'requestId': deal.requestId
           }),
         })
           
