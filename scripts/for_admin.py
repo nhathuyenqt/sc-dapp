@@ -152,11 +152,15 @@ def homo_computation(id, info):
     CL2 = convert(CL_r_new)
     CR2 = convert(CR_r_new)
     print(" id ",  id)
-    gas = contract_instance.functions.confirmProof(id, y_str, CL1, CR1, yr_str, CL2, CR2).estimateGas({'from': acc_admin.address})
-    tx = contract_instance.functions.confirmProof(id, y_str, CL1, CR1, yr_str, CL2, CR2).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address), 'from': acc_admin.address})
-    signed_tx = w3.eth.account.signTransaction(tx, admin_key)
-    hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    print("Server confirms proof Tx : ", hash.hex())
+    try:
+        gas = contract_instance.functions.confirmProof(id, y_str, CL1, CR1, yr_str, CL2, CR2).estimateGas({'from': acc_admin.address})
+        tx = contract_instance.functions.confirmProof(id, y_str, CL1, CR1, yr_str, CL2, CR2).buildTransaction({'nonce': w3.eth.getTransactionCount(admin_address), 'from': acc_admin.address})
+        signed_tx = w3.eth.account.signTransaction(tx, admin_key)
+        hash= w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+        print("Server confirms proof Tx : ", hash.hex())
+    except ValueError:
+        print(ValueError)
+    
     # print("info " , info)
 
 def handle_event_transfer(event):

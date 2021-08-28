@@ -115,6 +115,7 @@ function Posts (props) {
               color="primary"
               size="small"
               alignItem='center'
+              disabled = {(params.row.state == 'Assigned'  || params.row.state == 'WaitingPayValidation')? false : true}
               onClick={() => handlePay(params)}>
               Pay
             </Button>
@@ -134,9 +135,9 @@ function Posts (props) {
       }
     ];
 
-    setTimeout(()=>{
-      listenEvents()
-    }, 5000);
+    // setTimeout(()=>{
+    //   listenEvents()
+    // }, 5000);
     
     const handleClickLoad = (params) => {
 
@@ -151,7 +152,7 @@ function Posts (props) {
     
     };
 
-    const handleCancel = (item) => {
+    async function handleCancel(item){
       
       setSelectedItem(item)
       const response = await fetch("/cancelRequest", {
@@ -279,18 +280,18 @@ function Posts (props) {
   }
 
 
-    async function listenEvents(){
+    // async function listenEvents(){
       
-      if (typeof window.ethereum !== 'undefined'){
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const contract = new ethers.Contract(contractAddress, XContract.abi, provider);
-        contract.on("NewPrice", (id, CL_price, CR_price) => {
-          console.log("event ", id, CL_price, CR_price);
-        })
-        // console.log(contract.events)
-        // await contract.events.NewPrice({}).on("data", (e) => console.log(e));
-      }
-    }
+    //   if (typeof window.ethereum !== 'undefined'){
+    //     const provider = new ethers.providers.Web3Provider(window.ethereum);
+    //     const contract = new ethers.Contract(contractAddress, XContract.abi, provider);
+    //     contract.on("NewPrice", (id, CL_price, CR_price) => {
+    //       console.log("event ", id, CL_price, CR_price);
+    //     })
+    //     // console.log(contract.events)
+    //     // await contract.events.NewPrice({}).on("data", (e) => console.log(e));
+    //   }
+    // }
 
     useEffect(() => {
       reload();

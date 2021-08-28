@@ -15,7 +15,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 function DealTransfer(props) {
 
     const { currentBCAccount, keypair, balance} = useAuth()
-    const [text, setText] = useState('');
+    const [text, setText] = useState();
     const { onClose, open, deal } = props;
     const [amtView, setAmtView] = useState(true);
     const [amt, setAmt] = useState(true);
@@ -24,9 +24,18 @@ function DealTransfer(props) {
         onClose();
     };
 
-    async function encryptTransfer(check){
-        setAmtView(check);
-        if (deal != null && check == false){
+    const showRaw = (check) =>{
+      setAmtView(check);
+    }
+    
+    useEffect(() => {
+      encryptTransfer()
+    });
+
+    async function encryptTransfer(){
+        // setAmtView(check);
+        console.log(deal)
+        if (deal != null && open){
             console.log("DEAL ", deal);
             const response = await fetch("/encryptAmount", {
                 method: "POST",
@@ -95,7 +104,7 @@ function DealTransfer(props) {
                     <Grid item >
                         <Switch
                             checked={amtView}
-                            onChange={e => encryptTransfer(e.target.checked)}
+                            onChange={e => showRaw(e.target.checked)}
                             name="checkedA"
                             inputProps={{ 'aria-label': 'secondary checkbox' }} />
                     </Grid>
